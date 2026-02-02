@@ -4304,8 +4304,8 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
     const ADMIN_NAMES = ["YazHamit", "Yazhamit"];
     const FORCE_AD_SIMULATOR = true; // Geliştirme aşamasında veya sorun olduğunda true yapın
     const VIP_NAMES = ["YazHamit", "Yazhamit"];
-    const ADMIN_PASS = "976493.Hy";
-    const OKUEMEL_PASS = "EmelGökalp";
+    const ADMIN_HASH = "OTc2NDkzLkh5"; // Base64 encoded
+    const OKUEMEL_HASH = "RW1lbGfDtmthbHA="; // Base64 encoded
     let game = { active: false, mode: "", room: "", role: "", diff: 4, type: "classic", playStyle: "turn", turn: "p1", mySecret: "", rights: 15, duration: 3, timerInt: null, usedItems: [] };
     let globalMultiplier = 1;
     let activeQuest = null;
@@ -5368,7 +5368,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         }
     }
     function addXP(amount) { user.xp += amount; const xpNeeded = 500; if (user.xp >= xpNeeded) { user.xp = 0; user.level++; updateGold(200); document.getElementById('newLevelDisplay').innerText = user.level; showModal('modal-levelup'); safeConfetti(); } db.ref('users/' + user.name).update({ xp: user.xp, level: user.level }); updateLobbyUI(); }
-    function attemptLogin() { let name = document.getElementById('usernameInput').value.trim(); let pass = document.getElementById('passwordInput').value.trim(); if (name.length < 3) return showToast("İsim kısa!"); if (ADMIN_NAMES.includes(name)) { if (pass !== ADMIN_PASS) return alert("Hatalı Admin Şifresi!"); completeLogin(name); return; } if (name === "OkuEmel") { if (pass !== OKUEMEL_PASS) return alert("Hatalı Şifre!"); completeLogin(name); return; } if (pass.length < 3) return showToast("Şifre en az 3 karakter olmalı."); db.ref('banned/' + name).once('value').then(snap => { if (snap.exists()) { alert("Yasaklı!"); return; } db.ref('users/' + name).once('value').then(s => { const val = s.val(); if (val) { if (val.password === pass) completeLogin(name); else alert("Yanlış Şifre!"); } else { db.ref('users/' + name).set({ password: pass, gold: 500, xp: 0, level: 1, inventory: [], joinDate: Date.now() }).then(() => completeLogin(name)); } }); }); }
+    function attemptLogin() { let name = document.getElementById('usernameInput').value.trim(); let pass = document.getElementById('passwordInput').value.trim(); if (name.length < 3) return showToast("İsim kısa!"); if (ADMIN_NAMES.includes(name)) { if (btoa(pass) !== ADMIN_HASH) return alert("Hatalı Admin Şifresi!"); completeLogin(name); return; } if (name === "OkuEmel") { if (btoa(unescape(encodeURIComponent(pass))) !== OKUEMEL_HASH) return alert("Hatalı Şifre!"); completeLogin(name); return; } if (pass.length < 3) return showToast("Şifre en az 3 karakter olmalı."); db.ref('banned/' + name).once('value').then(snap => { if (snap.exists()) { alert("Yasaklı!"); return; } db.ref('users/' + name).once('value').then(s => { const val = s.val(); if (val) { if (val.password === pass) completeLogin(name); else alert("Yanlış Şifre!"); } else { db.ref('users/' + name).set({ password: pass, gold: 500, xp: 0, level: 1, inventory: [], joinDate: Date.now() }).then(() => completeLogin(name)); } }); }); }
 
     // --- MODAL UTILS ---
     function showModal(id) {
@@ -6177,7 +6177,84 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
     function toggleChatBlock() { isChatBlocked = !isChatBlocked; const btn = document.getElementById('btnBlockChat'); if (isChatBlocked) { btn.innerText = "✅ Engeli Kaldır"; btn.classList.replace('btn-dark', 'btn-green'); showToast("Sohbet Gizlendi"); document.getElementById('gameChatBox').innerHTML = ""; } else { btn.innerText = "🚫 Engelle"; btn.classList.replace('btn-green', 'btn-dark'); showToast("Sohbet Açık"); } }
     function sendGameChat() { const txt = document.getElementById('gameChatInput').value; if (txt && game.room) { db.ref('rooms/' + game.room + '/chat').push({ u: user.name, m: txt }); document.getElementById('gameChatInput').value = ""; } }
     function showLeaderboard() { showModal('modal-leaderboard'); loadLeaderboard('all'); }
-    function loadLeaderboard(type) { const list = document.getElementById('lbContent'); list.innerHTML = "Yükleniyor..."; let ref; if (type === 'daily') ref = db.ref(`daily_jackpot/${getDayKey()}`).orderByValue(); else if (type === 'weekly') ref = db.ref(`weekly_rankings/${getWeekKey()}`).orderByValue(); else ref = db.ref('users').orderByChild('gold'); ref.limitToLast(20).once('value').then(snap => { list.innerHTML = ""; let arr = []; snap.forEach(c => { if (VIP_NAMES.includes(c.key)) return; let val = c.val(); let score = (type === 'all') ? val.gold : val; arr.push({ n: c.key, s: score }); }); arr.reverse(); if (arr.length === 0) list.innerHTML = "<small>Kayıt yok.</small>"; arr.forEach((p, i) => { list.innerHTML += `<div class="list-item"><span>${i + 1}. ${p.n}</span><b>${p.s} ${type === 'all' ? '💰' : '🏆'}</b></div>`; }); }); }
+    function loadLeaderboard(type) {
+        const list = document.getElementById('lbContent');
+        if (!list) return;
+
+        list.innerHTML = "<div style='text-align:center; padding:10px;'>Yükleniyor...</div>";
+
+        let ref;
+        try {
+            if (type === 'daily') {
+                const dayKey = getDayKey();
+                if(!dayKey) throw new Error("Tarih hatası");
+                ref = db.ref('daily_jackpot/' + dayKey).orderByValue();
+            } else if (type === 'weekly') {
+                const weekKey = getWeekKey();
+                if(!weekKey) throw new Error("Tarih hatası");
+                ref = db.ref('weekly_rankings/' + weekKey).orderByValue();
+            } else {
+                ref = db.ref('users').orderByChild('gold');
+            }
+
+            ref.limitToLast(20).once('value')
+                .then(snap => {
+                    list.innerHTML = "";
+                    let arr = [];
+
+                    if (snap.exists()) {
+                        snap.forEach(c => {
+                            // VIP Kontrolü (Varsa filtrele)
+                            if (typeof VIP_NAMES !== 'undefined' && VIP_NAMES.includes(c.key)) return;
+
+                            let val = c.val();
+                            let score = 0;
+
+                            if (type === 'all') {
+                                score = (val && val.gold !== undefined) ? parseInt(val.gold) : 0;
+                            } else {
+                                score = parseInt(val) || 0;
+                            }
+
+                            arr.push({ n: c.key, s: score });
+                        });
+
+                        // Firebase artan sıralar, ters çevir (En yüksek en üstte)
+                        arr.sort((a, b) => b.s - a.s);
+                    }
+
+                    if (arr.length === 0) {
+                        list.innerHTML = "<div style='text-align:center; padding:10px; color:#999;'>Kayıt yok.</div>";
+                    } else {
+                        arr.forEach((p, i) => {
+                            let rankColor = "#333";
+                            let icon = "👤";
+                            if(i===0) { rankColor="#f1c40f"; icon="🥇"; }
+                            if(i===1) { rankColor="#bdc3c7"; icon="🥈"; }
+                            if(i===2) { rankColor="#cd7f32"; icon="🥉"; }
+
+                            const suffix = (type === 'all') ? '💰' : '🏆';
+
+                            list.innerHTML += `
+                            <div class="list-item" style="border-left: 4px solid ${rankColor};">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-weight:bold; color:${rankColor}; width:20px;">${i + 1}.</span>
+                                    <span>${p.n}</span>
+                                </div>
+                                <b>${p.s} ${suffix}</b>
+                            </div>`;
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    list.innerHTML = "<div style='color:red; text-align:center;'>Veri alınamadı.</div>";
+                });
+        } catch(e) {
+            console.error(e);
+            list.innerHTML = "<div style='color:red; text-align:center;'>Hata oluştu.</div>";
+        }
+    }
     function updateTurnUI(t) {
         const p1 = document.getElementById('p1Indicator'),
             p2 = document.getElementById('p2Indicator'),
