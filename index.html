@@ -5975,7 +5975,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
                     else if (diff === 6) reward = 600;
                     else reward = 1000;
                 }
-                endGameLocal('win', reward);
+                if(reward > 0) updateGold(reward); endGameLocal('win', reward);
                 try {
                     AudioEngine.win();
                     const elapsed = (Date.now() - game.startTime) / 1000;
