@@ -6510,7 +6510,43 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
     }
     function saveUser() { localStorage.setItem("yh_name", user.name); localStorage.setItem("yh_ava", user.avatar); if (user.name) { db.ref('users/' + user.name).update({ avatar: user.avatar }); } }
     function isGoldRainTime() { const trTimeStr = new Date().toLocaleString("en-US", { timeZone: "Europe/Istanbul" }); const trDate = new Date(trTimeStr); const hour = trDate.getHours(); return (hour === 21); }
-    function updateGold(amount) { let multiplier = 1; if (amount > 0) { if (globalMultiplier > 1) { multiplier = globalMultiplier; } else if (isGoldRainTime()) { multiplier = 2; } } const finalAmount = Math.floor(amount * multiplier); user.gold += finalAmount; document.getElementById('lobbyGold').innerText = user.gold; if (user.name) { db.ref('users/' + user.name).update({ gold: user.gold }); } if (amount > 0 && multiplier > 1) { showToast(`🔥 ALTIN YAĞMURU! ${amount} yerine ${finalAmount} kazandın!`); } }
+    function updateGold(amount) {
+        let multiplier = 1;
+        if (amount > 0) {
+            if (globalMultiplier > 1) {
+                multiplier = globalMultiplier;
+            } else if (isGoldRainTime()) {
+                multiplier = 2;
+            }
+        }
+        const finalAmount = Math.floor(amount * multiplier);
+        user.gold += finalAmount;
+        document.getElementById('lobbyGold').innerText = user.gold;
+
+        if (user.name) {
+            db.ref('users/' + user.name).update({ gold: user.gold });
+
+            // GÜNLÜK VE HAFTALIK SIRALAMA GÜNCELLEMESİ (Sadece Kazançta)
+            if (finalAmount > 0) {
+                const today = getDayKey();
+                const week = getWeekKey();
+
+                // Günlük Şampiyonluk
+                db.ref(`daily_jackpot/${today}/${user.name}`).transaction(current => {
+                    return (current || 0) + finalAmount;
+                });
+
+                // Haftalık Sıralama
+                db.ref(`weekly_rankings/${week}/${user.name}`).transaction(current => {
+                    return (current || 0) + finalAmount;
+                });
+            }
+        }
+
+        if (amount > 0 && multiplier > 1) {
+            showToast(`🔥 ALTIN YAĞMURU! ${amount} yerine ${finalAmount} kazandın!`);
+        }
+    }
     function setGoldMultiplier(val) { if (confirm(`Oyun genelinde altın çarpanını x${val} yapmak istiyor musun?`)) { db.ref('system/gold_multiplier').set(val); showToast(`Çarpan x${val} olarak ayarlandı.`); } }
     function checkGoldRainStatus() { const badge = document.getElementById('goldRainBadge'); if (!badge) return; let isActive = false; let currentMult = 1; if (globalMultiplier > 1) { isActive = true; currentMult = globalMultiplier; } else if (isGoldRainTime()) { isActive = true; currentMult = 2; } if (isActive) { badge.style.display = 'block'; badge.innerText = `🌧️ ALTIN YAĞMURU AKTİF! (x${currentMult} KAZANÇ)`; } else { badge.style.display = 'none'; } }
     function checkAdmin() { document.getElementById('btnAdminPanel').style.display = 'block'; loadAdminDashboard(); db.ref('users').once('value').then(snap => { document.getElementById('totalUserCount').innerText = snap.numChildren(); }); }
