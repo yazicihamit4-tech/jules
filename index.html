@@ -4957,16 +4957,14 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         if (!game.active) return showToast("Oyun başlamadı!");
         if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok! Marketten al.");
 
-        // --- KARİYER MODU ÖZEL KISITLAMASI ---
-        if (game.mode === 'career' && type === 'oracle') {
-            if (game.oracleUsedCount >= game.oracleMax) {
-                return showToast(`⚠️ Bu seviyede Kahin en fazla ${game.oracleMax} kez kullanılabilir!`);
-            }
-        }
-        // -------------------------------------
+
 
         if (type === 'oracle') {
-            if (game.usedItems && game.usedItems.includes('oracle') && game.mode !== 'career') return showToast("Bu maçta zaten kullandın!"); // Normal modda 1 kez
+            // YENİ KAHİN KURALLARI
+            if (game.diff === 3) return showToast("🚫 3 Haneli oyunlarda Kahin yasaktır!");
+            if (game.usedItems && game.usedItems.includes('oracle')) return showToast("⚠️ Kahin özelliği her oyunda en fazla 1 kez kullanılabilir!");
+
+
 
             const secret = game.secret.toString();
             const randomIdx = Math.floor(Math.random() * secret.length);
@@ -6435,7 +6433,29 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
             console.error("Reklam hatası:", e);
         }
     }
-    function startSingle() {
+
+    function updateGameInterface(mode) {
+        const chatContainer = document.getElementById('gameChatContainer');
+        const chatToggleBtn = document.getElementById('btnGameChatToggle');
+        const sabotageBtn = document.getElementById('btnSabotage');
+        const emojiBar = document.querySelector('.emoji-bar');
+
+        // Default: Show Everything
+        if(chatContainer) chatContainer.style.display = 'none'; // Initially collapsed but togglable
+        if(chatToggleBtn) chatToggleBtn.style.display = 'flex';
+        if(sabotageBtn) sabotageBtn.style.display = 'inline-block';
+        if(emojiBar) emojiBar.style.display = 'flex';
+
+        // Single Player Restrictions
+        if (mode === 'single') {
+            if(chatToggleBtn) chatToggleBtn.style.display = 'none';
+            if(sabotageBtn) sabotageBtn.style.display = 'none';
+            if(emojiBar) emojiBar.style.display = 'none';
+            // Also hide chat box if open
+            if(chatContainer) chatContainer.style.display = 'none';
+        }
+    }
+function startSingle() {
         const dStr = document.getElementById('singleDiffSelect').value;
         const d = parseInt(dStr) || 4;
         const mode = document.getElementById('singleMode').value;
@@ -6449,6 +6469,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         game.startTime = Date.now();
         game.lifelineUsed = false;
         game.petHelpUsed = false;
+        game.usedItems = [];
 
         resetUI();
 
@@ -6474,6 +6495,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         document.getElementById('p2Indicator').innerText = "Hedef";
         closeModal('modal-setup');
         changeScreen('screen-game');
+        updateGameInterface('single');
         updateTurnUI('p1');
         updateLobbyUI();
     }
@@ -7027,7 +7049,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
             // --- OYUN BAŞLANGICI / YENİDEN BAŞLAMA ---
             if (r.status === "playing" && !game.active) {
                 game.diff = r.config.diff; // Zorluğu güncelle
-                game.active = true;
+                game.usedItems = []; game.active = true;
                 game.turn = r.turn;
                 game.rights = r.rights;
                 game.secret = r.secret;
@@ -7035,6 +7057,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
                 closeModal('modal-setup');
                 changeScreen('screen-game');
+                updateGameInterface('online');
                 resetUI(); // Ekranı ve geçmişi temizle
                 updateTurnUI(r.turn);
 
