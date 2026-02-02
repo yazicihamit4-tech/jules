@@ -6830,12 +6830,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
 
 
-    function setBRVisibility(status) {
-        if (confirm(status ? "BR Butonu herkes için GÖRÜNÜR olacak?" : "BR Butonu GİZLENECEK?")) {
-            db.ref('system/br_visible').set(status);
-            showToast(status ? "BR Butonu Açıldı ✅" : "BR Butonu Gizlendi ⛔");
-        }
-    }
+
     window.addEventListener('DOMContentLoaded', () => {
         // 1. Yükleme Ekranını Gizle (Doğru ID: 'loading')
         setTimeout(() => {
