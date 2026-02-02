@@ -4000,18 +4000,7 @@ text-align: center;
     </div>
 
 
-    <div id="screen-br-lobby" class="screen">
-        <div class="card" style="text-align:center;"><button class="nav-btn"
-                onclick="changeScreen('screen-lobby')">⬅</button>
-            <h2 style="color:var(--gold)">👑 BATTLE ROYALE</h2>
-            <div style="font-size:4rem; margin:20px 0;">⚔️</div>
-            <p>Herkes tek bir sayıya karşı!</p>
-            <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:10px; margin:10px 0;">
-                <h3 id="brStatusText">Lobi Bekleniyor...</h3>
-                <p style="font-size:0.8rem; color:#aaa;">Yönetici bekleniyor...</p>
-            </div>
-        </div>
-    </div>
+
 
     <div id="screen-admin" class="screen">
         <div class="card"><button class="nav-btn" onclick="handleBackButton()">⬅</button>
@@ -4261,6 +4250,14 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
     const AdManager = {
         pendingCallback: null,
+        // AdMob IDs
+        appId: "ca-app-pub-5879474591831999~1348513678",
+        rewardedIds: [
+            "ca-app-pub-5879474591831999/1499369487",
+            "ca-app-pub-5879474591831999/4862883127"
+        ],
+        interstitialId: "ca-app-pub-5879474591831999/9656400021",
+
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
         showRewardedAd: function (onSuccess) {
@@ -4281,9 +4278,17 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
                 }
 
                 if (this.isAndroid()) {
-                    if (typeof window.Android.showRewardedAd === 'function') window.Android.showRewardedAd();
-                    else if (typeof window.Android.showAd === 'function') window.Android.showAd();
-                    else this.runWebMock();
+                    // Pick a random rewarded ID for load balancing
+                    const adUnitId = this.rewardedIds[Math.floor(Math.random() * this.rewardedIds.length)];
+
+                    if (typeof window.Android.showRewardedAd === 'function') {
+                        // Pass ID if the native method accepts it
+                        window.Android.showRewardedAd(adUnitId);
+                    } else if (typeof window.Android.showAd === 'function') {
+                        window.Android.showAd(adUnitId);
+                    } else {
+                        this.runWebMock();
+                    }
                 } else {
                     this.runWebMock();
                 }
@@ -4305,7 +4310,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
             }
 
             if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
-                window.Android.showInterstitial();
+                window.Android.showInterstitial(this.interstitialId);
             } else {
                 console.log("Geçiş Reklamı Tetiklendi (Web Mock)");
                 this.runWebMock(true);
@@ -4318,36 +4323,23 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
             const originalContent = modalBody.innerHTML;
             let timeLeft = 3;
 
-            // Başlık yazısını güncelle
-            const title = isInterstitial ? "Geçiş Reklamı" : "Ödüllü Reklam";
-
-            const timer = setInterval(() => {
-                modalBody.innerHTML = `<h3>📺 ${title}</h3><div style="font-size:3rem; margin:20px 0;">${timeLeft}</div><p style="color:#999; font-size:0.8rem;">Simülasyon...</p>`;
+            const interval = setInterval(() => {
                 timeLeft--;
-                if (timeLeft < 0) {
-                    clearInterval(timer);
-                    modalBody.innerHTML = originalContent;
+                if (modalBody.querySelector('p')) {
+                    modalBody.querySelector('p').innerText = "Reklam simülasyonu: " + timeLeft + "s";
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    modalBody.innerHTML = originalContent; // Restore text
                     closeModal('modal-ad-watch');
 
-                    // Eğer bu ödüllü reklam ise ödülü ver, interstitial ise sadece kapat
-                    if (!isInterstitial && typeof this.pendingCallback === 'function') {
+                    if (!isInterstitial && this.pendingCallback) {
                         this.pendingCallback();
                         this.pendingCallback = null;
                     }
                 }
             }, 1000);
-        },
-
-        grantReward: function () {
-            if (typeof this.pendingCallback === 'function') {
-                this.pendingCallback();
-                this.pendingCallback = null;
-                if (user && user.name) {
-                    user.adsWatched = (user.adsWatched || 0) + 1;
-                    db.ref('users/' + user.name).update({ adsWatched: user.adsWatched });
-                    updateLobbyUI();
-                }
-            }
         }
     };
 
@@ -4359,7 +4351,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         'fox': { name: 'Kurnaz', emoji: '🦊', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Fox.png', bonus: 'gold_multiplier', desc: 'Kazanılan altını 2 katına çıkarma şansı (%10).', price: 0 },
         'owl': { name: 'Bilge', emoji: '🦉', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Owl.png', bonus: 'expert_eye', desc: 'Yanlış tahminde %25 şansla hakkın gitmez.', price: 0 },
         'fish': { name: 'Beta', emoji: '🐠', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Tropical%20Fish.png', bonus: 'time_freeze', desc: 'Süre bitince %10 şansla +10sn ekler.', price: 0 },
-        'lion': { name: 'Aslan', emoji: '🦁', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Lion.png', bonus: 'war_veteran', desc: 'Savaş Puanı kazancını %15 artırır.', price: 0 },
+        'lion': { name: 'Aslan', emoji: '🦁', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Lion.png', bonus: 'gold_master', desc: 'Altın kazancını %5 artırır.', price: 0 },
         'eagle': { name: 'Kartal', emoji: '🦅', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Eagle.png', bonus: 'eagle_eye', desc: 'Oyun başı %50 şansla 1 rakamı kesin bilir (Oracle).', price: 0 },
         'turtle': { name: 'Tospik', emoji: '🐢', image: 'https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Animals/Turtle.png', bonus: 'streak_shield', desc: 'Kaybetsen de %20 şansla serin bozulmaz.', price: 0 }
     };
@@ -8325,8 +8317,8 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
         window.currentLifelineAction = function () {
             // NativeAdManager might not be defined if ad system is missing, check it
-            if (typeof NativeAdManager !== 'undefined') {
-                NativeAdManager.showRewarded(() => {
+            if (typeof AdManager !== 'undefined') {
+                AdManager.showRewardedAd(() => {
                     game.lifelineUsed = true;
                     closeModal('modal-lifeline');
                     if (type === 'time') {
