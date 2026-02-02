@@ -3195,23 +3195,7 @@ text-align: center;
                 </span>
             </button>
 
-            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
 
-                <button id="btnBountyLobby" class="btn-gold"
-                    style="width:100%; background:linear-gradient(135deg, #f39c12, #d35400); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3);"
-                    onclick="openBountyScreen()">
-                    🤠 ÖDÜL AVCILARI
-                </button>
-
-                <div onclick="event.stopPropagation(); showModal('modal-bounty-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%);
-                width:22px; height:22px; border-radius:50%;
-                background:#0984e3; color:white; font-size:14px;
-                display:flex; align-items:center; justify-content:center;
-                font-weight:bold; cursor:pointer; z-index:5;">
-                    ?
-                </div>
-
-            </div>
 
             <div id="goldRainBadge" class="gold-rain-active" style="width:100%; max-width:350px;">🌧️ ALTIN YAĞMURU
                 AKTİF!
@@ -3911,19 +3895,7 @@ text-align: center;
                 class="btn-red">İPTAL</button>
         </div>
     </div>
-    <div id="modal-bounty-info" class="modal-overlay">
-        <div class="modal-box" style="text-align:left;">
-            <h3 style="text-align:center; color:#d35400;">🤠 NASIL OYNANIR?</h3>
-            <div style="font-size:0.9rem; color:#333; line-height:1.5;">
-                <p><b>1. AVCI OLMAK (İlan Seç):</b><br>Listeden bir ilan seç. Giriş ücretini öde (Ödülün %10'u). Gizli
-                    sayıyı bulursan <b>BÜYÜK ÖDÜLÜ</b> alırsın!</p>
-                <hr>
-                <p><b>2. İLAN VERMEK (Tuzak Kur):</b><br>Zor bir sayı belirle ve ödül koy. Diğer oyuncular senin sayını
-                    bulmaya çalışır. Bulamazlarsa ödedikleri giriş ücreti <b>SANA GELİR!</b></p>
-            </div><button class="btn-red" onclick="closeModal('modal-bounty-info')" style="margin-top:15px;">TAMAM,
-                BAŞLA!</button>
-        </div>
-    </div>
+
 
     <div id="screen-wait" class="screen">
         <div class="card"><button class="btn-red"
@@ -4098,72 +4070,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 </div>
 </div>
 
-<div id="screen-bounty" class="screen">
-    <div class="card" style="height: 100%; display: flex; flex-direction: column;">
-        <div style="flex-shrink: 0;">
-            <button class="nav-btn" onclick="changeScreen('screen-lobby')">⬅</button>
-            <h2 style="color:#d35400; text-align: center; margin-top: 5px;">🤠 ÖDÜL AVCILARI</h2>
 
-            <div
-                style="display:flex; gap:10px; margin-bottom:15px; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px;">
-                <button id="tabBountyList" class="btn-blue" onclick="switchBountyTab('list')"
-                    style="font-size:0.85rem; flex: 1;">🎯 AKTİF İLANLAR</button>
-                <button id="tabBountyCreate" class="btn-grey" onclick="switchBountyTab('create')"
-                    style="font-size:0.85rem; flex: 1;">📝 İLAN OLUŞTUR</button>
-                <button class="btn-gold" onclick="showModal('modal-bounty-info')"
-                    style="width:auto; padding:5px 12px; font-size: 1.2rem;">❓</button>
-            </div>
-        </div>
-
-        <div id="bountyListArea" style="flex: 1; overflow-y: auto; padding-bottom: 20px;">
-            <p style="font-size:0.8rem; color:#666; text-align: center; margin-bottom:10px;">
-                Bir ilanı seç ve ödülü kazan!<br>
-                <small>Kazanamazsan giriş ücreti ilan sahibine gider.</small>
-            </p>
-            <div id="bountyListContainer" class="list-container" style="max-height:none; overflow: visible;">
-                Yükleniyor...</div>
-        </div>
-
-        <div id="bountyCreateArea" style="display:none; text-align:left; flex: 1; overflow-y: auto;">
-            <div
-                style="background:rgba(255,255,255,0.8); padding:15px; border-radius:15px; border: 1px solid #ddd; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
-
-                <h4 style="margin: 0 0 10px 0; color: var(--primary);">Yeni Av Başlat</h4>
-
-                <label style="font-size:0.8rem; font-weight:bold; color:#555;">1. Zorluk Seç:</label>
-                <select id="bountyDiffSelect"
-                    style="width:100%; margin:5px 0 15px 0; padding:12px; border-radius:10px; border:2px solid #eee; font-weight:bold;"
-                    onchange="updateBountyInputRules(this.value)">
-                    <option value="4">4 Hane (Normal)</option>
-                    <option value="5">5 Hane (Zor)</option>
-                    <option value="6">6 Hane (Çok Zor)</option>
-                    <option value="7">7 Hane (İmkansız)</option>
-                </select>
-
-                <label style="font-size:0.8rem; font-weight:bold; color:#555;">2. Gizli Sayı Belirle:</label>
-                <input type="tel" id="bountySecretInput" placeholder="Örn: 1234" maxlength="4"
-                    style="letter-spacing:5px; font-size: 1.2rem; text-align:center;">
-                <small style="color:#999; display:block; margin-top:-5px; margin-bottom: 15px;">Rakamları birbirinden
-                    farklı olmalı.</small>
-
-                <label style="font-size:0.8rem; font-weight:bold; color:#555;">3. Ödül Miktarı (Altın):</label>
-                <div style="display:flex; gap:10px; align-items: center;">
-                    <input type="number" id="bountyRewardInput" placeholder="Min: 100" style="margin:0;">
-                    <span style="font-size:1.5rem;">💰</span>
-                </div>
-
-                <div
-                    style="margin-top:15px; padding:10px; background:#fff3cd; border-radius:8px; font-size:0.75rem; color:#856404; border: 1px solid #ffeeba;">
-                    💡 <b>Kazanç Sistemi:</b><br>
-                    • İlan verirken ödül hesabından düşer.<br>
-                    • Avcılar başarısız olursa, ödedikleri giriş ücreti (%10) <b>SANA GELİR.</b>
-                </div>
-            </div>
-            <button class="btn-green" onclick="postBounty()"
-                style="margin-top:15px; padding: 15px; font-size: 1rem;">İLAN YAYINLA</button>
-        </div>
-    </div>
-</div>
 
 <!-- SANDIK ETKİLEŞİM MODALI -->
 
@@ -4250,15 +4157,33 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
     const AdManager = {
         pendingCallback: null,
-        // AdMob IDs
+        // Ad Configuration
         appId: "ca-app-pub-5879474591831999~1348513678",
-        rewardedIds: [
+
+        // AdMob Units
+        admobRewardedIds: [
             "ca-app-pub-5879474591831999/1499369487",
             "ca-app-pub-5879474591831999/4862883127"
         ],
-        interstitialId: "ca-app-pub-5879474591831999/9656400021",
+        admobInterstitialId: "ca-app-pub-5879474591831999/9656400021",
+
+        // Yandex Units
+        yandexRewardedId: "R-M-18543851-1",
+        yandexInterstitialId: "R-M-18543851-2",
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
+
+        // Helper to pick a random unit ID from available networks
+        pickRewardedUnitId: function() {
+            // Pool of all available IDs: AdMob ones + Yandex one
+            const pool = [...this.admobRewardedIds, this.yandexRewardedId];
+            return pool[Math.floor(Math.random() * pool.length)];
+        },
+
+        pickInterstitialUnitId: function() {
+            // Randomly choose between AdMob and Yandex
+            return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
+        },
 
         showRewardedAd: function (onSuccess) {
             this.pendingCallback = onSuccess;
@@ -4278,11 +4203,10 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
                 }
 
                 if (this.isAndroid()) {
-                    // Pick a random rewarded ID for load balancing
-                    const adUnitId = this.rewardedIds[Math.floor(Math.random() * this.rewardedIds.length)];
+                    const adUnitId = this.pickRewardedUnitId();
+                    console.log("Requesting Rewarded Ad: " + adUnitId);
 
                     if (typeof window.Android.showRewardedAd === 'function') {
-                        // Pass ID if the native method accepts it
                         window.Android.showRewardedAd(adUnitId);
                     } else if (typeof window.Android.showAd === 'function') {
                         window.Android.showAd(adUnitId);
@@ -4310,7 +4234,9 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
             }
 
             if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
-                window.Android.showInterstitial(this.interstitialId);
+                const adUnitId = this.pickInterstitialUnitId();
+                console.log("Requesting Interstitial Ad: " + adUnitId);
+                window.Android.showInterstitial(adUnitId);
             } else {
                 console.log("Geçiş Reklamı Tetiklendi (Web Mock)");
                 this.runWebMock(true);
@@ -5823,43 +5749,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         const secretStr = game.secret.toString(); // Garanti string
 
         // --- BOUNTY MODE ---
-        if (game.mode === 'bounty') {
-            for (let i = 0; i < diff; i++) {
-                if (v[i] == secretStr[i]) p++;
-                else if (secretStr.includes(v[i])) m++;
-            }
-            addHistory(v, p, m);
-            if (p == diff) {
-                stopTimer();
-                const prize = game.bountyPrize;
-                endGameLocal('win', prize);
-                try {
-                    updateGold(prize);
-                    db.ref('bounties/' + game.bountyId).remove();
-                    AudioEngine.win();
-                    safeConfetti();
-                } catch (e) { console.error(e); }
-                setTimeout(() => changeScreen('screen-bounty'), 3000);
-            } else {
-                game.rights--;
-                document.getElementById('rightsDisplay').innerText = "Hak: " + game.rights;
-                if (game.rights <= 0) {
-                    endGameLocal('lose', 0);
-                    try {
-                        const entryFee = Math.floor(game.bountyPrize * 0.1);
-                        db.ref('users/' + game.bountyOwner + '/gold').transaction(g => (g || 0) + entryFee);
-                        AudioEngine.error();
-                    } catch (e) { }
-                    setTimeout(() => changeScreen('screen-bounty'), 3000);
-                } else {
-                    try { AudioEngine.error(); } catch (e) { }
-                    const card = document.getElementById('gameCard');
-                    card.classList.add('shake-anim');
-                    setTimeout(() => card.classList.remove('shake-anim'), 500);
-                }
-            }
-            return;
-        }
+
 
         // --- SINGLE PLAYER & CAREER MODE ---
         if (game.mode === 'single' || game.mode === 'career') {
@@ -6085,7 +5975,7 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         inp.placeholder = "_".repeat(game.diff);
 
         // DÜZELTME BURADA YAPILDI: 'bounty' modu eklendi
-        if (game.mode === 'single' || game.mode === 'career' || game.mode === 'bounty' || game.playStyle === 'simul') {
+        if (game.mode === 'single' || game.mode === 'career'  || game.playStyle === 'simul') {
             p1.className = "turn-indicator turn-active";
             p2.className = "turn-indicator turn-active";
             btn.disabled = false;
@@ -6710,207 +6600,19 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         showModal('modal-avatar-change');
     }
 
-    function openBountyScreen() {
-        changeScreen('screen-bounty');
-        // Varsayılan olarak listeyi aç
-        switchBountyTab('list');
-        loadBounties();
-    }
 
-    function switchBountyTab(tab) {
-        const listArea = document.getElementById('bountyListArea');
-        const createArea = document.getElementById('bountyCreateArea');
-        const btnList = document.getElementById('tabBountyList');
-        const btnCreate = document.getElementById('tabBountyCreate');
 
-        if (tab === 'list') {
-            listArea.style.display = 'block';
-            createArea.style.display = 'none';
-            btnList.className = 'btn-blue';
-            btnCreate.className = 'btn-grey';
-            loadBounties(); // Listeye geçince yenile
-        } else {
-            listArea.style.display = 'none';
-            createArea.style.display = 'block';
-            btnList.className = 'btn-grey';
-            btnCreate.className = 'btn-blue';
-        }
-    }
 
-    function updateBountyInputRules(val) {
-        const input = document.getElementById('bountySecretInput');
-        input.maxLength = val;
-        input.placeholder = val + " Rakam";
-        input.value = ""; // Karışıklık olmasın diye temizle
-    }
 
-    function postBounty() {
-        const diff = parseInt(document.getElementById('bountyDiffSelect').value);
-        const secret = document.getElementById('bountySecretInput').value.trim();
-        const reward = parseInt(document.getElementById('bountyRewardInput').value);
 
-        // 1. Validasyon: Sayısal kontrol
-        if (!secret.match(/^[0-9]+$/)) return showToast("Sadece rakam girmelisin!");
 
-        // 2. Validasyon: Uzunluk ve Benzersizlik
-        if (secret.length !== diff) return showToast(`Sayı tam ${diff} haneli olmalı!`);
-        if (new Set(secret).size !== diff) return showToast("Rakamlar birbirinden farklı olmalı!");
 
-        // 3. Validasyon: Minimum Ödül
-        let minReward = 100;
-        if (diff === 5) minReward = 250;
-        if (diff === 6) minReward = 500;
-        if (diff === 7) minReward = 1000;
 
-        if (!reward || reward < minReward) return showToast(`Bu zorluk (${diff} Hane) için en az ${minReward} Altın koymalısın!`);
-        if (user.gold < reward) return showToast("Yetersiz Altın!");
 
-        if (!confirm(`${reward} Altın ödüllü ilan yayınlanacak. Onaylıyor musun?`)) return;
 
-        // İşlem Başarılı
-        updateGold(-reward);
 
-        db.ref('bounties').push({
-            owner: user.name,
-            secret: secret,
-            reward: reward,
-            diff: diff,
-            avatar: user.avatar, // Avatarı da ekledik, şık görünsün
-            timestamp: firebase.database.ServerValue.TIMESTAMP
-        }, (error) => {
-            if (!error) {
-                showToast("İlan Başarıyla Yayınlandı! 🤠");
-                // Inputları temizle
-                document.getElementById('bountySecretInput').value = "";
-                document.getElementById('bountyRewardInput').value = "";
-                switchBountyTab('list');
-                AudioEngine.success();
-            } else {
-                showToast("Hata oluştu: " + error.message);
-                updateGold(reward); // Hata varsa parayı iade et
-            }
-        });
-    }
 
-    function loadBounties() {
-        const container = document.getElementById('bountyListContainer');
-        container.innerHTML = "<div style='text-align:center; padding:20px;'>Veriler çekiliyor...</div>";
 
-        db.ref('bounties').off();
-        db.ref('bounties').on('value', snap => {
-            container.innerHTML = "";
-            if (!snap.exists()) {
-                container.innerHTML = `
-                <div style='padding:30px; text-align:center; opacity:0.7;'>
-                    <div style='font-size:3rem;'>🌵</div>
-                    <p>Henüz açık bir ilan yok.<br>İlk ilanı sen ver!</p>
-                </div>`;
-                return;
-            }
-
-            const bounties = [];
-            snap.forEach(child => {
-                bounties.push({ key: child.key, ...child.val() });
-            });
-            // En yüksek ödül en üstte görünsün
-            bounties.sort((a, b) => b.reward - a.reward);
-
-            bounties.forEach(b => {
-                const isMine = b.owner === user.name;
-                const entryFee = Math.floor(b.reward * 0.1);
-                const difficulty = b.diff || 4;
-
-                // --- DÜZELTME BURADA BAŞLIYOR ---
-                let ownerAvatarContent = b.avatar || "👤";
-
-                // Eğer avatar bir link içeriyorsa (http), onu resim etiketi içine al
-                if (ownerAvatarContent.includes('http')) {
-                    ownerAvatarContent = `<img src="${ownerAvatarContent}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`;
-                }
-                // --- DÜZELTME BİTTİ ---
-
-                // Yıldız Gösterimi
-                let stars = "⭐".repeat(difficulty - 3);
-
-                let actionBtn = "";
-                if (isMine) {
-                    actionBtn = `<button class="btn-red" style="width:auto; padding:8px 12px; font-size:0.75rem; border-radius:8px;" onclick="cancelBounty('${b.key}', ${b.reward})">İPTAL ET</button>`;
-                } else {
-                    actionBtn = `<button class="btn-green" style="width:auto; padding:8px 12px; font-size:0.8rem; border-radius:8px; box-shadow:0 4px 0 #218c74;" onclick="attemptBounty('${b.key}', '${b.owner}', '${b.secret}', ${b.reward}, ${difficulty})">AVLA (${entryFee}💰)</button>`;
-                }
-
-                const html = `
-            <div class="card" style="margin:8px 0; padding:12px; display:flex; justify-content:space-between; align-items:center; border-left:5px solid #d35400; background:#fff;">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="font-size:1.5rem; background:#eee; width:45px; height:45px; min-width:45px; display:flex; align-items:center; justify-content:center; border-radius:50%; overflow:hidden; border:2px solid #ddd;">
-                        ${ownerAvatarContent}
-                    </div>
-                    <div>
-                        <div style="font-weight:bold; color:#d35400; font-size:1rem;">🤠 ${b.reward} Altın</div>
-                        <div style="font-size:0.75rem; color:#444; font-weight:bold;">${b.owner} <span style="color:#999; font-weight:normal;">arıyor...</span></div>
-                        <div style="font-size:0.7rem; color:#666; margin-top:2px;">Zorluk: ${difficulty} Hane ${stars}</div>
-                    </div>
-                </div>
-                <div style="text-align:right;">
-                    ${actionBtn}
-                </div>
-            </div> `;
-                container.innerHTML += html;
-            });
-        });
-    }
-
-    function cancelBounty(key, reward) {
-        if (confirm("İlanı kaldırmak istiyor musun? Altının iade edilecek.")) {
-            db.ref('bounties/' + key).remove();
-            updateGold(reward);
-            showToast("İlan kaldırıldı ve altın iade edildi.");
-        }
-    }
-
-    function attemptBounty(key, owner, secret, reward, diff) {
-        const entryFee = Math.floor(reward * 0.1);
-
-        if (user.gold < entryFee) return showToast(`Giriş ücreti (${entryFee} Altın) için paran yetersiz!`);
-
-        if (confirm(`${entryFee} Altın giriş ücreti ödeyip bu avı başlatmak istiyor musun?\n\nÖdül: ${reward} Altın\nZorluk: ${diff} Hane`)) {
-            updateGold(-entryFee);
-
-            // Oyun Değişkenlerini Ayarla
-            game.active = true;
-            game.mode = "bounty";
-            game.bountyId = key;
-            game.bountyOwner = owner;
-            game.bountyPrize = reward;
-            game.secret = secret.toString();
-            game.diff = parseInt(diff);
-
-            // Hak Sayısı Zorluğa Göre Değişsin
-            if (game.diff === 4) game.rights = 10;
-            else if (game.diff === 5) game.rights = 15;
-            else if (game.diff === 6) game.rights = 20;
-            else game.rights = 25;
-
-            game.startTime = Date.now();
-            game.usedItems = [];
-
-            resetUI(); // Sohbeti, geçmişi temizle
-            changeScreen('screen-game');
-
-            // UI Güncelleme
-            document.getElementById('p1Indicator').innerText = "AVCI";
-            document.getElementById('p2Indicator').innerText = "HEDEF";
-            document.getElementById('p2Indicator').className = "turn-indicator turn-wait"; // Pasif görünüm
-
-            document.getElementById('rightsDisplay').style.display = 'block';
-            document.getElementById('rightsDisplay').innerText = "Hak: " + game.rights;
-            document.getElementById('timerDisplay').style.display = 'none';
-
-            updateTurnUI('p1');
-            showToast("🤠 AV BAŞLADI! İYİ ŞANSLAR...");
-            AudioEngine.notification();
-        }
-    }
     function setBRVisibility(status) {
         if (confirm(status ? "BR Butonu herkes için GÖRÜNÜR olacak?" : "BR Butonu GİZLENECEK?")) {
             db.ref('system/br_visible').set(status);
