@@ -4342,6 +4342,8 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
     const AdManager = {
         pendingCallback: null,
+        mockRunning: false, // Prevent concurrent mocks
+
         // Ad Configuration
         appId: "ca-app-pub-5879474591831999~1348513678",
 
@@ -4360,44 +4362,38 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
         // Helper to pick a random unit ID from available networks
         pickRewardedUnitId: function() {
-            // Pool of all available IDs: AdMob ones + Yandex one
             const pool = [...this.admobRewardedIds, this.yandexRewardedId];
             return pool[Math.floor(Math.random() * pool.length)];
         },
 
         pickInterstitialUnitId: function() {
-            // Randomly choose between AdMob and Yandex
             return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
         },
 
         showRewardedAd: function (onSuccess) {
             this.pendingCallback = onSuccess;
             try {
-                // SİMÜLASYON MODU (Global Flag)
                 if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                    console.log("⚠️ Ad Simulator Forced");
                     this.runWebMock();
                     return;
                 }
 
-                // ADMIN KORUMASI: Adminler asla gerçek reklam görmez
                 if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                    console.log("Admin detected: Forcing Web Mock for Ad.");
                     this.runWebMock();
                     return;
                 }
 
                 if (this.isAndroid()) {
                     const adUnitId = this.pickRewardedUnitId();
-                    console.log("Requesting Rewarded Ad: " + adUnitId);
-
-                    if (typeof window.Android.showRewardedAd === 'function') {
-                        window.Android.showRewardedAd(adUnitId);
-                    } else if (typeof window.Android.showAd === 'function') {
-                        window.Android.showAd(adUnitId);
-                    } else {
-                        this.runWebMock();
-                    }
+                    try {
+                        if (typeof window.Android.showRewardedAd === 'function') {
+                            window.Android.showRewardedAd(adUnitId);
+                        } else if (typeof window.Android.showAd === 'function') {
+                            window.Android.showAd(adUnitId);
+                        } else {
+                            this.runWebMock();
+                        }
+                    } catch(e) { this.runWebMock(); }
                 } else {
                     this.runWebMock();
                 }
@@ -4405,44 +4401,64 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         },
 
         showInterstitialAd: function () {
-            // SİMÜLASYON MODU (Global Flag)
-            if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                this.runWebMock(true);
-                return;
-            }
+            // Check for mock active to prevent double overlay
+            if (this.mockRunning) return;
 
-            // ADMIN KORUMASI
-            if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                console.log("Admin detected: Forcing Web Mock for Interstitial.");
-                this.runWebMock(true);
-                return;
-            }
+            try {
+                if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
+                    this.runWebMock(true);
+                    return;
+                }
 
-            if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
-                const adUnitId = this.pickInterstitialUnitId();
-                console.log("Requesting Interstitial Ad: " + adUnitId);
-                window.Android.showInterstitial(adUnitId);
-            } else {
-                console.log("Geçiş Reklamı Tetiklendi (Web Mock)");
-                this.runWebMock(true);
+                if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
+                    this.runWebMock(true);
+                    return;
+                }
+
+                if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
+                    const adUnitId = this.pickInterstitialUnitId();
+                    try {
+                        window.Android.showInterstitial(adUnitId);
+                    } catch(e) {
+                        console.error("Native Interstitial Failed:", e);
+                        this.runWebMock(true); // Fallback
+                    }
+                } else {
+                    this.runWebMock(true);
+                }
+            } catch(e) {
+                console.error("Interstitial Error:", e);
             }
         },
 
         runWebMock: function (isInterstitial = false) {
+            if (this.mockRunning) return;
+            this.mockRunning = true;
+
             showModal('modal-ad-watch');
             const modalBody = document.querySelector('#modal-ad-watch .modal-box');
-            const originalContent = modalBody.innerHTML;
+            if(!modalBody) { this.mockRunning = false; return; }
+
+            // Save original content (but ensure we don't save a modified state)
+            if (!this.originalMockContent) this.originalMockContent = modalBody.innerHTML;
+
+            // Reset content just in case
+            modalBody.innerHTML = this.originalMockContent;
+
             let timeLeft = 3;
+            const pLabel = modalBody.querySelector('p');
+            if(pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
 
             const interval = setInterval(() => {
                 timeLeft--;
-                if (modalBody.querySelector('p')) {
-                    modalBody.querySelector('p').innerText = "Reklam simülasyonu: " + timeLeft + "s";
-                }
+                if (pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
 
                 if (timeLeft <= 0) {
                     clearInterval(interval);
-                    modalBody.innerHTML = originalContent; // Restore text
+                    this.mockRunning = false;
+
+                    // Restore and Close
+                    modalBody.innerHTML = this.originalMockContent;
                     closeModal('modal-ad-watch');
 
                     if (!isInterstitial && this.pendingCallback) {
@@ -4451,6 +4467,16 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
                     }
                 }
             }, 1000);
+
+            // Safety timeout: Close after 5s no matter what
+            setTimeout(() => {
+                if(this.mockRunning) {
+                    clearInterval(interval);
+                    this.mockRunning = false;
+                    modalBody.innerHTML = this.originalMockContent;
+                    closeModal('modal-ad-watch');
+                }
+            }, 5000);
         }
     };
 
