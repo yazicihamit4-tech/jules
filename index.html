@@ -2999,11 +2999,14 @@ text-align: center;
 }
 
 /* WORD GAME STYLES */
+
 .word-cell {
-    width: 45px; height: 45px;
+    width: 13vw; height: 13vw;
+    max-width: 55px; max-height: 55px;
     border: 2px solid #ddd;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.5rem; font-weight: bold;
+    font-size: calc(1rem + 1vw);
+    font-weight: bold;
     text-transform: uppercase;
     background: #fff;
     color: #333;
@@ -3343,7 +3346,7 @@ text-align: center;
                 </div>
             </div>
             <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
-                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="startWordGame()">
+                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
                     <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
                 </button>
                 <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
@@ -3462,7 +3465,7 @@ text-align: center;
                     <h3 style="margin:0; color:#8e44ad;">KELİME HAZİNESİ</h3>
                     <small id="wordLevelDisplay" style="color:#666;">Seviye 1</small>
                 </div>
-                <div style="width:45px;"></div>
+                <button id="btnWordChat" class="nav-btn" style="position:static; margin:0; font-size:1rem; background:#3498db; display:none;" onclick="toggleGameChat()">💬</button>
             </div>
 
             <!-- Game Board -->
@@ -3851,7 +3854,94 @@ text-align: center;
                 </button>
             </div>
         </div>
+    </div
+    <!-- WORD GAME SETUP MODAL -->
+    <div id="modal-word-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
+        <div class="modal-box" style="padding: 0; max-width: 420px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 85vh;">
+
+            <div style="background: linear-gradient(135deg, #8e44ad, #9b59b6); padding: 15px; color: white; text-align: center; position: relative; flex-shrink: 0;">
+                <h3 style="margin:0; font-size: 1.3rem; letter-spacing: 1px;">KELİME MODU</h3>
+                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 3px;">Mücadele türünü seç</div>
+            </div>
+
+            <div style="padding: 15px; background: #f4f6f8; overflow-y: auto; flex: 1;">
+
+                <!-- SINGLE PLAYER & PvC -->
+                <div style="background: white; border-radius: 16px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #eee; margin-bottom: 15px; position: relative; overflow: hidden;">
+                    <div style="position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #9b59b6;"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-left: 8px;">
+                        <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">👤 TEK KİŞİLİK / PvC</span>
+                    </div>
+
+                    <div style="display: flex; gap: 6px; margin-bottom:10px;">
+                        <select id="wordDiffSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="3">3 Harfli</option>
+                            <option value="4">4 Harfli</option>
+                            <option value="5" selected>5 Harfli</option>
+                            <option value="6">6 Harfli</option>
+                            <option value="7">7 Harfli</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
+                            <input type="checkbox" id="checkWordVsCpu" style="width: 20px; height: 20px;">
+                        </div>
+                    </div>
+
+                    <button onclick="startWordGameCustom()" class="btn-green" style="margin-top: 10px; width: 100%; border-radius: 8px; padding: 10px; background: linear-gradient(135deg, #8e44ad, #9b59b6);">BAŞLA</button>
+                </div>
+
+                <div style="text-align: center; margin: -25px 0 8px 0; position: relative; z-index: 2;">
+                    <span style="background: #fff; border: 2px solid #eee; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; color: #999; font-weight: bold;">VEYA</span>
+                </div>
+
+                <!-- ONLINE -->
+                <div style="background: white; border-radius: 16px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #eee; position: relative; overflow: hidden; margin-bottom: 15px;">
+                    <div style="position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #3498db;"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-left: 8px;">
+                        <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">🌍 ONLINE DÜELLO</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+                        <select id="createWordDiff" style="padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; font-weight:600;">
+                            <option value="4">4 Harf</option>
+                            <option value="5" selected>5 Harf</option>
+                            <option value="6">6 Harf</option>
+                        </select>
+                        <button onclick="createWordRoom()" class="btn-blue" style="margin:0; padding: 5px; font-size: 0.7rem;">ODA KUR (50💰)</button>
+                    </div>
+
+                    <div style="display: flex; gap: 5px; align-items: center; background: #fff; border-top: 2px solid #f1f2f6; padding-top: 8px;">
+                        <input type="tel" id="joinWordCode" placeholder="Oda Kodu" style="flex: 1; padding: 8px; border-radius: 6px; border: 2px solid #eee; text-align: center; font-size: 0.9rem; margin:0;">
+                        <button onclick="joinWordRoom(document.getElementById('joinWordCode').value)" class="btn-purple" style="width: auto; padding: 8px 12px; border-radius: 6px; margin:0;">GİR</button>
+                    </div>
+                </div>
+
+                <!-- CAREER -->
+                <button class="btn-gold" style="width:100%; background:linear-gradient(135deg, #f1c40f, #f39c12); color:#000; font-weight:bold; box-shadow:0 4px 10px rgba(241, 196, 15, 0.4);" onclick="openWordCareer()">
+                    🗺️ KELİME KARİYERİ (SAGA)
+                </button>
+
+            </div>
+
+            <div style="padding: 10px; background: #fff; text-align: center; border-top: 1px solid #eee; flex-shrink: 0;">
+                <button onclick="closeModal('modal-word-setup')" style="background: transparent; color: #b2bec3; font-weight: bold; border: none; font-size: 0.85rem; padding: 5px; width: 100%; cursor: pointer;">VAZGEÇ</button>
+            </div>
+        </div>
     </div>
+
+    <!-- WORD CAREER MAP MODAL -->
+    <div id="modal-word-career" class="modal-overlay">
+        <div style="position:absolute; top:20px; right:20px; z-index:100;">
+            <button class="nav-btn" onclick="closeModal('modal-word-career')" style="width:40px; height:40px; font-size:1.2rem;">X</button>
+        </div>
+        <div id="wordCareerContent" style="width:100%; height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+            <!-- Generated by JS -->
+        </div>
+    </div>
+>
 
 
 
@@ -5123,6 +5213,35 @@ const THEMES = [
     function buyItem(id, cost) { if (user.gold < cost) return showToast("Yetersiz Altın!"); updateGold(-cost); if (!user.items) user.items = { oracle: 0, freeze: 0, sabotage: 0 }; user.items[id] = (user.items[id] || 0) + 1; db.ref('users/' + user.name + '/items').set(user.items); showToast("Satın alındı!"); openMarket(); updateLobbyUI(); }
     function buyItemWithAd(id) { if (confirm("Reklam izleyerek bu eşyayı almak ister misin?")) { AdManager.showRewardedAd(() => { if (!user.items) user.items = { oracle: 0, freeze: 0, sabotage: 0 }; user.items[id] = (user.items[id] || 0) + 1; db.ref('users/' + user.name + '/items').set(user.items); showToast("Eşya kazanıldı! (Reklam)"); openMarket(); updateLobbyUI(); }); } }
     function useItem(type) {
+        if (currentScreen === 'screen-word-game') {
+            if (!wordGameState.active) return;
+            if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok!");
+
+            if (type === 'oracle') {
+                // Reveal 1 letter (Green)
+                // Find a letter in secret that hasn't been guessed correctly yet?
+                // Or just reveal a random position?
+
+                const secret = wordGameState.secret;
+                let revealed = false;
+
+                // Try to find unrevealed index
+                for(let i=0; i<10; i++) {
+                    const idx = Math.floor(Math.random() * secret.length);
+                    // Check if we already know this (from board)?
+                    // Simplified: Just tell the letter.
+                    alert(`🔮 KAHİN: ${idx+1}. Harf: ${secret[idx]}`);
+                    revealed = true;
+                    break;
+                }
+
+                user.items[type]--;
+                db.ref('users/' + user.name + '/items').set(user.items);
+                updateLobbyUI();
+                return;
+            }
+        }
+
         if (!game.active) return showToast("Oyun başlamadı!");
         if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok! Marketten al.");
 
@@ -6795,6 +6914,23 @@ function startSingle() {
     function requestRematch() {
         // Tek kişilikse direkt başlat
         // Tek kişilikse direkt başlat
+
+        // Word Game Replay
+        if (currentScreen === 'screen-word-game') {
+             // Restart with last config
+             // We stored config in wordGameState?
+             // wordGameState has length and mode.
+
+             // Re-run setup logic manually or extract `restartWordGame`?
+             // Let's modify `startWordGameCustom` to optionally take params?
+             // Or just set the DOM elements and call it?
+             // But DOM might have changed.
+
+             // Better: define `restartWordGame()` that uses `wordGameState` params.
+             restartWordGame();
+             return;
+        }
+
         if (game.mode === 'single') {
             const d = game.diff || 4; // Dropdowndan değil, mevcut oyundan al
             document.getElementById('singleDiffSelect').value = d;
@@ -8825,6 +8961,23 @@ function startSingle() {
         }
         // Logic to replay depends on mode.
         // For single player:
+
+        // Word Game Replay
+        if (currentScreen === 'screen-word-game') {
+             // Restart with last config
+             // We stored config in wordGameState?
+             // wordGameState has length and mode.
+
+             // Re-run setup logic manually or extract `restartWordGame`?
+             // Let's modify `startWordGameCustom` to optionally take params?
+             // Or just set the DOM elements and call it?
+             // But DOM might have changed.
+
+             // Better: define `restartWordGame()` that uses `wordGameState` params.
+             restartWordGame();
+             return;
+        }
+
         if (game.mode === 'single') {
             startSingle(); // Restarts with last settings
         } else if (game.mode === 'bounty') {
@@ -8952,7 +9105,70 @@ function startSingle() {
         }
 
         // Add to history
+
         wordGameState.guesses.push(guess);
+
+        // --- PvC TURN LOGIC ---
+        if (wordGameState.mode === 'pvc' && wordGameState.active) {
+            // Simple AI: Random chance to guess correct letter position?
+            // Or just a timer simulating AI playing?
+            // "Bilgisayara karşı" -> Race.
+            // AI makes a guess every X seconds or after Player?
+            // Turn based is fairer.
+
+            // Let's implement Turn Based for simplicity and fairness visual.
+            // Player guess -> AI guess.
+
+            // But Wordle is usually solitary.
+            // Maybe "Who solves in fewer steps?"
+            // Or "Shared board?" No, separate boards.
+
+            // Let's simulate AI progress.
+            // AI tries to guess the word.
+            // We need `wordGameState.aiGuesses`.
+
+            setTimeout(() => {
+                if(!wordGameState.active) return;
+
+                // AI Logic:
+                // 1. Pick a word from pool consistent with history? Too hard to code perfect AI quickly.
+                // 2. Simpler: AI reveals 1-2 correct letters or random word?
+                // Let's make AI pick a random word of correct length.
+
+                const lvl = wordGameState.level;
+                const data = WORD_DATA[lvl] || WORD_DATA[1];
+                const pool = data.words;
+                const aiGuess = pool[Math.floor(Math.random() * pool.length)];
+
+                wordGameState.aiGuesses.push(aiGuess);
+
+                // Check AI Win
+                if (aiGuess === wordGameState.secret) {
+                    wordGameState.active = false;
+                    AudioEngine.error(); // Player lost
+                    showToast("💻 Bilgisayar Kelimeyi Buldu: " + wordGameState.secret);
+                    setTimeout(() => {
+                        alert("BİLGİSAYAR KAZANDI! 🤖");
+                        changeScreen('screen-lobby');
+                    }, 1000);
+                } else {
+                    showToast(`🤖 Bilgisayar Tahmini: ${aiGuess}`);
+                }
+            }, 1500);
+        }
+
+        // --- ONLINE LOGIC ---
+        if (wordGameState.mode === 'online') {
+            // Send move to Firebase
+            if (game.room) {
+               db.ref('rooms/' + game.room + '/word_moves').push({
+                   u: user.name,
+                   g: guess,
+                   t: Date.now()
+               });
+            }
+        }
+
         wordGameState.currentGuess = "";
 
         renderWordBoard();
@@ -9041,7 +9257,35 @@ Doğru Kelime: ${wordGameState.secret}`);
                     cell.className = "word-cell empty";
                     board.appendChild(cell);
                 }
-            }
+
+    function restartWordGame() {
+        const diff = wordGameState.length;
+        const isPvC = (wordGameState.mode === 'pvc');
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const pool = data.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: isPvC ? 'pvc' : 'single',
+            secret: secret,
+            length: diff,
+            guesses: [],
+            maxGuesses: 6,
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now()
+        };
+
+        if(isPvC) wordGameState.aiGuesses = [];
+
+        renderWordBoard();
+        updateWordKeyboard();
+        closeModal('modal-end'); // Just in case
+    }
+           }
         }
     }
 
@@ -9075,6 +9319,232 @@ Doğru Kelime: ${wordGameState.secret}`);
                 btn.classList.add(statusMap[key]);
             }
         });
+    }
+
+    function safeOpenWordSetup() {
+        showModal('modal-word-setup');
+    }
+
+    function startWordGameCustom() {
+        const diff = parseInt(document.getElementById('wordDiffSelect').value);
+        const isPvC = document.getElementById('checkWordVsCpu').checked;
+
+        // Config for Word Game
+        const config = {
+            length: diff,
+            words: WORD_DATA[diff - 2] ? WORD_DATA[diff - 2].words : WORD_DATA[1].words, // Mapping: 3->1, 4->2...
+            // Wait, WORD_DATA keys are 1,2,3,4,5.
+            // Level 1: 3 letters. Level 2: 4 letters.
+            // So key = diff - 2.
+        };
+
+        // If WORD_DATA logic was strict on levels, let's ensure we get the right pool.
+        // Or update WORD_DATA to be keyed by length?
+        // Current: 1:{length:3}, 2:{length:4}...
+        // So level = length - 2.
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+
+        // Pick random word
+        const pool = data.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: isPvC ? 'pvc' : 'single',
+            secret: secret,
+            length: diff,
+            guesses: [],
+            maxGuesses: 6,
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now()
+        };
+
+        if(isPvC) {
+            wordGameState.aiGuesses = [];
+            // Pick AI secret word too? For PvP style?
+            // "Bilgisayara karşı" usually means racing or turn based guessing same word?
+            // Or like Number Game PvC where AI guesses YOUR word?
+            // Let's assume AI guesses THE SECRET word too, race to find it.
+            // Or turn based?
+            // Let's implement Race Mode: Player guesses, then AI guesses. Who finds it first?
+            // Or maybe separate boards?
+            // Shared board is easier for UI.
+            // Let's do: AI has its own board state in memory.
+        }
+
+        closeModal('modal-word-setup');
+        changeScreen('screen-word-game');
+        renderWordBoard();
+        updateWordKeyboard();
+
+        document.getElementById('wordLevelDisplay').innerText = `${diff} Harfli - ${isPvC ? '🆚 Bilgisayar' : 'Tek Kişilik'}`;
+    }
+
+    function createWordRoom() {
+        if (user.gold < 50) return showToast("50 Altın Gerek");
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+
+        updateGold(-50);
+
+        // Pick Secret Word (Shared? or Each has own?)
+        // "Rakam oyununda olan tüm özellikler" -> Usually shared secret or symmetrical.
+        // Let's pick ONE secret word for both to guess. Race.
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff },
+            status: "waiting",
+            startTime: Date.now()
+        });
+
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+
+        closeModal('modal-word-setup');
+        changeScreen('screen-wait');
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        listenWordRoom(c);
+    }
+
+    function joinWordRoom(c) {
+        c = c.toString().trim();
+        db.ref('rooms/' + c).once('value').then(s => {
+            const r = s.val();
+            if (!r || r.type !== 'word') return showToast("Oda Yok/Hatalı");
+            if (r.status !== "waiting") return showToast("Dolu");
+
+            updateGold(-50);
+            game.room = c;
+            game.role = "p2";
+
+            db.ref('rooms/' + c).update({
+                p2: { name: user.name, avatar: user.avatar },
+                status: "playing",
+                startTime: Date.now()
+            });
+
+            closeModal('modal-word-setup');
+            listenWordRoom(c);
+        });
+    }
+
+    function listenWordRoom(c) {
+        db.ref('rooms/' + c).on('value', s => {
+            const r = s.val();
+            if (!r) return;
+
+            if (r.status === 'playing' && currentScreen !== 'screen-word-game') {
+                // Start Game
+                wordGameState = {
+                    active: true,
+                    mode: 'online',
+                    secret: r.secret,
+                    length: r.config.length,
+                    guesses: [],
+                    maxGuesses: 6,
+                    currentGuess: "",
+                    level: r.config.length - 2
+                };
+                changeScreen('screen-word-game');
+                renderWordBoard();
+                updateWordKeyboard();
+                showToast("DÜELLO BAŞLADI!");
+            }
+
+            // Check Winner
+            if (r.winner) {
+                if (r.winner === user.name) {
+                    showPiggyWin(500);
+                } else {
+                    alert("KAYBETTİN! Kazanan: " + r.winner);
+                    changeScreen('screen-lobby');
+                }
+                db.ref('rooms/' + c).off();
+            }
+        });
+
+        // Listen for Opponent Moves (Optional: Show ghost rows?)
+        // For now, simpler: First to guess wins.
+
+        db.ref('rooms/' + c + '/word_moves').on('child_added', s => {
+            const m = s.val();
+            if (m.g === wordGameState.secret) {
+                // Someone won
+                db.ref('rooms/' + c).update({ winner: m.u });
+            }
+        });
+    }
+
+    function openWordCareer() {
+        showModal('modal-word-career');
+        const container = document.getElementById('wordCareerContent');
+        container.innerHTML = `<div style="text-align:center; padding:50px;">Kariyer Haritası Yükleniyor...</div>`;
+
+        // Similar to Number Career but 5 levels
+        // Reward per level.
+
+        let html = '<div class="career-container"><div class="career-bg-decoration"></div>';
+
+        for(let i=1; i<=5; i++) {
+            const unlocked = (user.wordLevel >= i);
+            const current = (user.wordLevel === i);
+            const status = current ? 'current' : (unlocked ? 'completed' : 'locked');
+
+            // Just basic nodes
+            html += `
+            <div class="career-step">
+                <div class="career-node ${status}" onclick="startWordCareerLevel(${i})">
+                    ${current ? '📍' : (unlocked ? '✅' : '🔒')}
+                    <div class="career-label">Seviye ${i} (${i+2} Harf)</div>
+                </div>
+            </div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function startWordCareerLevel(lvl) {
+        if(user.wordLevel < lvl) return showToast("Önceki seviyeyi tamamla!");
+
+        // Start game with this level config
+        // Assuming WORD_DATA is 1-based index mapping to length?
+        // WORD_DATA[1] -> Length 3.
+
+        const config = WORD_DATA[lvl];
+        const pool = config.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: 'career',
+            secret: secret,
+            length: config.length,
+            guesses: [],
+            maxGuesses: 6,
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now()
+        };
+
+        closeModal('modal-word-career');
+        closeModal('modal-word-setup');
+        changeScreen('screen-word-game');
+        renderWordBoard();
+        updateWordKeyboard();
+
+        document.getElementById('wordLevelDisplay').innerText = `Kariyer Seviye ${lvl}`;
     }
 </script>
 
