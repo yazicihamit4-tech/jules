@@ -3639,6 +3639,18 @@ text-align: center;
                             </select>
                         </div>
                     </div>
+                    <!-- PvC Options -->
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
+                            <input type="checkbox" id="checkVsCpu" onchange="document.getElementById('pvcSecretDiv').style.display = this.checked ? 'block' : 'none'" style="width: 20px; height: 20px;">
+                        </div>
+                        <div id="pvcSecretDiv" style="display: none; margin-top: 5px;">
+                            <input type="tel" id="playerSecretInput" placeholder="Senin Sayın (Opsiyonel)" maxlength="7" style="font-size: 0.9rem; padding: 8px; text-align: center; letter-spacing: 2px;">
+                            <small style="display:block; color:#999; font-size:0.65rem;">Boş bırakırsan sistem rastgele atar.</small>
+                        </div>
+                    </div>
+
 
                     <select id="singleDuration"
                         style="display:none; width: 100%; margin-top: 6px; padding: 8px; border-radius: 8px; border: 1px solid #fab1a0; background: #fff5f5; font-weight: bold; color: #d63031;">
@@ -5897,7 +5909,63 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         AudioEngine.notification();
     }
 
-    function makeGuess() {
+
+    // Helper: Calculate + (Plus) and - (Minus) score
+    function getScore(secretStr, guessStr) {
+        let p = 0, m = 0;
+        for (let i = 0; i < secretStr.length; i++) {
+            if (guessStr[i] === secretStr[i]) p++;
+            else if (secretStr.includes(guessStr[i])) m++;
+        }
+        return { p, m };
+    }
+
+    // AI Logic for PvC
+    const CpuAI = {
+        // Generate a random guess of length 'diff' with unique digits
+        generateRandom: function(diff) {
+            let digits = ['0','1','2','3','4','5','6','7','8','9'];
+            let res = "";
+            for(let i=0; i<diff; i++) {
+                const idx = Math.floor(Math.random() * digits.length);
+                res += digits[idx];
+                digits.splice(idx, 1);
+            }
+            return res;
+        },
+
+        // Generate a guess consistent with history
+        getGuess: function(diff, history) {
+            // history: [{g: '1234', p: 1, m: 0}, ...]
+            // Simple approach: Generate random valid guesses and check against history.
+            // Limit iterations to avoid freeze.
+
+            const maxTries = 2000;
+            for(let k=0; k<maxTries; k++) {
+                const candidate = this.generateRandom(diff);
+                let consistent = true;
+
+                for(let h of history) {
+                    const score = getScore(candidate, h.g); // If candidate was secret, would h.g score match h.p/h.m?
+                    // Symmetry: Score(A, B) == Score(B, A) for P/M logic?
+                    // Logic: "If 'candidate' is the secret, then previous guess 'h.g' MUST yield {h.p, h.m}"
+                    // Check: getScore(candidate, h.g) returns {p, m}.
+                    // If this matches h.p and h.m, it's consistent.
+
+                    if (score.p !== h.p || score.m !== h.m) {
+                        consistent = false;
+                        break;
+                    }
+                }
+
+                if(consistent) return candidate;
+            }
+
+            // Fallback
+            return this.generateRandom(diff);
+        }
+    };
+function makeGuess() {
         if (!game.active) return;
         const v = document.getElementById('guessInput').value;
         const diff = parseInt(game.diff); // Garanti sayı
@@ -5984,7 +6052,16 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
                     }
                     checkQuestProgress();
                     handleWinStreak();
-                } catch (err) { console.log("Veri kaydetme hatası:", err); }
+                }
+            if (game.isPvc && game.active) {
+                // Disable button to prevent spam while CPU thinks
+                document.getElementById('btnGuess').disabled = true;
+                document.getElementById('p1Indicator').className = "turn-indicator turn-wait";
+                document.getElementById('p2Indicator').className = "turn-indicator turn-active";
+
+                setTimeout(playCpuTurn, 1500);
+            }
+ catch (err) { console.log("Veri kaydetme hatası:", err); }
             } else {
                 if (game.type === 'classic') {
                     game.rights--;
@@ -6459,11 +6536,33 @@ function startSingle() {
         const dStr = document.getElementById('singleDiffSelect').value;
         const d = parseInt(dStr) || 4;
         const mode = document.getElementById('singleMode').value;
+        const isPvc = document.getElementById('checkVsCpu').checked;
+        let playerSecret = "";
+        if (isPvc) {
+            const inputSecret = document.getElementById('playerSecretInput').value.trim();
+            // Validate input
+            if (inputSecret) {
+                if (inputSecret.length !== d || new Set(inputSecret).size !== d) {
+                    return showToast(`Hatalı: Senin sayın ${d} haneli ve rakamları farklı olmalı!`);
+                }
+                playerSecret = inputSecret;
+            } else {
+                playerSecret = generateNumber(d);
+                showToast("Senin için sayı tutuldu: " + playerSecret);
+            }
+        }
+
 
         game.active = true;
         game.mode = "single";
         game.diff = d;
         game.secret = generateNumber(d);
+        game.isPvc = isPvc;
+        if(isPvc) {
+            game.playerSecret = playerSecret;
+            game.aiHistory = [];
+            game.cpuTurnCount = 0;
+        }
         game.type = mode;
         game.currentMoves = [];
         game.startTime = Date.now();
@@ -6492,7 +6591,7 @@ function startSingle() {
         }
 
         document.getElementById('p1Indicator').innerText = "Oyuncu";
-        document.getElementById('p2Indicator').innerText = "Hedef";
+        document.getElementById('p2Indicator').innerText = isPvc ? "Bilgisayar" : "Hedef";
         closeModal('modal-setup');
         changeScreen('screen-game');
         updateGameInterface('single');
@@ -8594,6 +8693,52 @@ function startSingle() {
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
         changeScreen('screen-lobby');
+    }
+
+    function playCpuTurn() {
+        if (!game.active) return;
+
+        const diff = game.diff;
+        const history = game.aiHistory || [];
+
+        // AI Guess
+        const guess = CpuAI.getGuess(diff, history);
+
+        // Score against Player Secret
+        const score = getScore(game.playerSecret, guess);
+
+        // Add to history (UI)
+        // Add to history list manually or use addHistory?
+        // addHistory uses 'his-me' / 'his-other' based on logic.
+        // I need to update addHistory to handle AI?
+        // Or just force it.
+
+        // Let's create a custom list item for AI to ensure it's on the left.
+        const li = document.createElement('li');
+        li.className = "his-other"; // AI is "other"
+        li.innerHTML = `<span class="his-badge">${guess}</span>
+        <div class="his-score">
+            <span style="color:#2ed573">+${score.p}</span>
+            <span style="color:#ff4757">-${score.m}</span>
+        </div>`;
+        document.getElementById('history').prepend(li);
+
+        // Save to AI history for next turn logic
+        game.aiHistory.push({ g: guess, p: score.p, m: score.m });
+
+        // Check Win
+        if (score.p === diff) {
+            game.active = false;
+            stopTimer();
+            showToast("💻 Bilgisayar Kazandı! Sayısı: " + game.secret);
+            endGameLocal('lose', 0); // Player lost
+        } else {
+            // Turn back to Player
+            document.getElementById('btnGuess').disabled = false;
+            document.getElementById('p1Indicator').className = "turn-indicator turn-active";
+            document.getElementById('p2Indicator').className = "turn-indicator turn-wait";
+            document.getElementById('guessInput').focus();
+        }
     }
 </script>
 
