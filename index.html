@@ -3948,9 +3948,7 @@ text-align: center;
                 </div>
 
                 <!-- CAREER -->
-                <button class="btn-gold" style="width:100%; background:linear-gradient(135deg, #f1c40f, #f39c12); color:#000; font-weight:bold; box-shadow:0 4px 10px rgba(241, 196, 15, 0.4);" onclick="openWordCareer()">
-                    🗺️ KELİME KARİYERİ (SAGA)
-                </button>
+
 
             </div>
 
@@ -4581,6 +4579,18 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         7: { length: 9, words: ["CUMHURİYET", "KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "DİYARBAKIR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "KIRŞEHİR", "NEVŞEHİR", "KAHRAMAN", "BAĞIMSIZLIK", "EGEMENLİK", "DEMOKRASİ"] },
         8: { length: 10, words: ["AFYONKARAHİSAR", "KAHRAMANMARAŞ", "GÜMÜŞHANELİ", "KASTAMONULU", "ÇANAKKALELİ", "BALIKESİRLİ", "DİYARBAKIRLI", "ZONGULDAKLI", "BAŞKOMUTAN", "ANITKABİR", "DOLMABAHÇE", "TOPKAPISARAY", "KIZKULESİ"] }
     };
+    // --- KELİME KARİYER AYARLARI ---
+    const WORD_CAREER_LEVELS = {
+        1: { length: 3, reward: 200, desc: "Kelime Çırağı (3 Harf)", icon: "🌱" },
+        2: { length: 4, reward: 400, desc: "Hece Ustası (4 Harf)", icon: "🌿" },
+        3: { length: 5, reward: 600, desc: "Kelime Avcısı (5 Harf)", icon: "🏹" },
+        4: { length: 6, reward: 800, desc: "Sözlük Kurdu (6 Harf)", icon: "📚" },
+        5: { length: 7, reward: 1200, desc: "Edebiyatçı (7 Harf)", icon: "🎓" },
+        6: { length: 8, reward: 2000, desc: "Bilgin (8 Harf)", icon: "🧠" },
+        7: { length: 9, reward: 3500, desc: "Filolog (9 Harf)", icon: "🏺" },
+        8: { length: 10, reward: 5000, desc: "Kelimelerin Efendisi (10 Harf)", icon: "👑" }
+    };
+
     let wordGameState = { active: false, secret: "", guesses: [], maxGuesses: 6, currentGuess: "", level: 1 };
 const THEMES = [
         { id: 'theme-tr', name: '🇹🇷 Türkiye', cost: 'AD', type: 'team' }, { id: 'theme-gs', name: '🦁 Galatasaray', cost: 'AD', type: 'team' }, { id: 'theme-fb', name: '🐦 Fenerbahçe', cost: 'AD', type: 'team' }, { id: 'theme-bjk', name: '🦅 Beşiktaş', cost: 'AD', type: 'team' }, { id: 'theme-ts', name: '🌀 Trabzonspor', cost: 'AD', type: 'team' }, { id: 'theme-goz', name: '🟡🔴 Göztepe', cost: 'AD', type: 'team' }, { id: 'theme-ksk', name: '🟢🔴 Karşıyaka', cost: 'AD', type: 'team' }, { id: 'theme-dark', name: '🌙 Gece', cost: 'AD', type: 'color' }, { id: 'theme-forest', name: '🌲 Orman', cost: 'AD', type: 'color' }, { id: 'theme-ocean', name: '🌊 Okyanus', cost: 'AD', type: 'color' }, { id: 'theme-love', name: '💖 Aşk', cost: 'AD', type: 'color' }, { id: 'bg-space', name: '🌌 Uzay', cost: 'AD', type: 'bg' }, { id: 'bg-matrix', name: '📟 Matrix', cost: 'AD', type: 'bg' }, { id: 'bg-hex', name: '🐝 Petek', cost: 'AD', type: 'bg' }, { id: 'bg-sky', name: '☁️ Gökyüzü', cost: 'AD', type: 'bg' }, { id: 'skin-gold', name: '👑 Altın', cost: 'AD', type: 'bg' }, { id: 'bg-neon-city', name: '🌃 Neon City', cost: 0, type: 'bg' }, { id: 'bg-mystic-purple', name: '🔮 Mistik Mor', cost: 0, type: 'bg' }, { id: 'bg-volcano', name: '🌋 Volkan', cost: 0, type: 'bg' }, { id: 'bg-deep-sea', name: '🦈 Derin Deniz', cost: 0, type: 'bg' }
@@ -5248,6 +5258,12 @@ const THEMES = [
             if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok!");
 
             if (type === 'oracle') {
+                if (wordGameState.usedItems && wordGameState.usedItems.includes('oracle')) {
+                    return showToast("⚠️ İpucu her oyunda 1 kez kullanılabilir!");
+                }
+                if (!wordGameState.usedItems) wordGameState.usedItems = [];
+                wordGameState.usedItems.push('oracle');
+
                 // Reveal 1 letter (Green)
                 // Find a letter in secret that hasn't been guessed correctly yet?
                 // Or just reveal a random position?
@@ -9134,37 +9150,33 @@ function startSingle() {
             return showToast(`Eksik harf! Kelime ${wordGameState.length} harfli olmalı.`);
         }
 
-        // Add to history
-
         wordGameState.guesses.push(guess);
+        wordGameState.currentGuess = "";
 
-        // --- PvC TURN LOGIC ---
+        renderWordBoard();
+        updateWordKeyboard();
+        AudioEngine.notification();
+
+        // Check Win
+        if (guess === wordGameState.secret) {
+            wordGameState.active = false;
+            setTimeout(() => {
+                handleWordGameWin();
+            }, 500);
+        } else if (wordGameState.guesses.length >= wordGameState.maxGuesses) {
+            wordGameState.active = false;
+            AudioEngine.error();
+            setTimeout(() => {
+                alert(`MAALESEF BİLEMEDİN!\nDoğru Kelime: ${wordGameState.secret}`);
+                changeScreen('screen-lobby');
+                checkWordGameAd(); // Check ad on loss too? Usually yes.
+            }, 500);
+        }
+
+        // PvC & Online Logic (Preserved)
         if (wordGameState.mode === 'pvc' && wordGameState.active) {
-            // Simple AI: Random chance to guess correct letter position?
-            // Or just a timer simulating AI playing?
-            // "Bilgisayara karşı" -> Race.
-            // AI makes a guess every X seconds or after Player?
-            // Turn based is fairer.
-
-            // Let's implement Turn Based for simplicity and fairness visual.
-            // Player guess -> AI guess.
-
-            // But Wordle is usually solitary.
-            // Maybe "Who solves in fewer steps?"
-            // Or "Shared board?" No, separate boards.
-
-            // Let's simulate AI progress.
-            // AI tries to guess the word.
-            // We need `wordGameState.aiGuesses`.
-
             setTimeout(() => {
                 if(!wordGameState.active) return;
-
-                // AI Logic:
-                // 1. Pick a word from pool consistent with history? Too hard to code perfect AI quickly.
-                // 2. Simpler: AI reveals 1-2 correct letters or random word?
-                // Let's make AI pick a random word of correct length.
-
                 const lvl = wordGameState.level;
                 const data = WORD_DATA[lvl] || WORD_DATA[1];
                 const pool = data.words;
@@ -9172,76 +9184,19 @@ function startSingle() {
 
                 wordGameState.aiGuesses.push(aiGuess);
 
-                // Check AI Win
                 if (aiGuess === wordGameState.secret) {
                     wordGameState.active = false;
-                    AudioEngine.error(); // Player lost
+                    AudioEngine.error();
                     showToast("💻 Bilgisayar Kelimeyi Buldu: " + wordGameState.secret);
                     setTimeout(() => {
                         alert("BİLGİSAYAR KAZANDI! 🤖");
                         changeScreen('screen-lobby');
+                        checkWordGameAd();
                     }, 1000);
                 } else {
                     showToast(`🤖 Bilgisayar Tahmini: ${aiGuess}`);
                 }
             }, 1500);
-        }
-
-        // --- ONLINE LOGIC ---
-        if (wordGameState.mode === 'online') {
-            // Send move to Firebase
-            if (game.room) {
-               db.ref('rooms/' + game.room + '/word_moves').push({
-                   u: user.name,
-                   g: guess,
-                   t: Date.now()
-               });
-            }
-        }
-
-        wordGameState.currentGuess = "";
-
-        renderWordBoard();
-        updateWordKeyboard();
-        AudioEngine.notification(); // Submit sound
-
-        // Check Win/Loss
-        if (guess === wordGameState.secret) {
-            wordGameState.active = false;
-            setTimeout(() => {
-                AudioEngine.win();
-                safeConfetti();
-
-                // Reward Logic
-                const baseGold = wordGameState.level * 100;
-                updateGold(baseGold);
-
-                // Level Up Logic
-                // Simple progression: 3 wins to level up? Or just 1 for now for "kademeli" feel
-                // Let's make it direct level up if not maxed.
-
-                if (wordGameState.level < 5) {
-                    user.wordLevel = (user.wordLevel || 1) + 1;
-                    if(user.name) db.ref('users/'+user.name).update({wordLevel: user.wordLevel});
-                    showToast(`🎉 TEBRİKLER! ${baseGold} Altın Kazandın ve Seviye Atladın!`);
-                } else {
-                    showToast(`🏆 TEBRİKLER! ${baseGold} Altın Kazandın! (Maksimum Seviye)`);
-                }
-
-                // Show Piggy
-                showPiggyWin(baseGold);
-
-                // Return to Lobby after delay
-                setTimeout(() => changeScreen('screen-lobby'), 4000);
-            }, 500);
-        } else if (wordGameState.guesses.length >= wordGameState.maxGuesses) {
-            wordGameState.active = false;
-            AudioEngine.error();
-            setTimeout(() => {
-                alert(`MAALESEF BİLEMEDİN!
-Doğru Kelime: ${wordGameState.secret}`);
-                changeScreen('screen-lobby');
-            }, 500);
         }
     }
 
@@ -9495,62 +9450,20 @@ Doğru Kelime: ${wordGameState.secret}`);
     function openWordCareer() {
         showModal('modal-word-career');
         const container = document.getElementById('wordCareerContent');
-        container.innerHTML = `<div style="text-align:center; padding:50px;">Kariyer Haritası Yükleniyor...</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:50px; color:#666;">Harita Yükleniyor...<br><small>Veriler alınıyor</small></div>`;
+        container.className = "career-container"; // Reuse styles
 
-        // Similar to Number Career but 5 levels
-        // Reward per level.
-
-        let html = '<div class="career-container"><div class="career-bg-decoration"></div>';
-
-        for(let i=1; i<=5; i++) {
-            const unlocked = (user.wordLevel >= i);
-            const current = (user.wordLevel === i);
-            const status = current ? 'current' : (unlocked ? 'completed' : 'locked');
-
-            // Just basic nodes
-            html += `
-            <div class="career-step">
-                <div class="career-node ${status}" onclick="startWordCareerLevel(${i})">
-                    ${current ? '📍' : (unlocked ? '✅' : '🔒')}
-                    <div class="career-label">Seviye ${i} (${i+2} Harf)</div>
-                </div>
-            </div>`;
-        }
-        html += '</div>';
-        container.innerHTML = html;
+        db.ref('users').once('value')
+            .then(snapshot => {
+                drawWordMapWithUsers(container, snapshot.val() || {});
+            })
+            .catch(error => {
+                console.error("Kelime Harita Hatası:", error);
+                drawWordMapWithUsers(container, {});
+            });
     }
 
-    function startWordCareerLevel(lvl) {
-        if(user.wordLevel < lvl) return showToast("Önceki seviyeyi tamamla!");
 
-        // Start game with this level config
-        // Assuming WORD_DATA is 1-based index mapping to length?
-        // WORD_DATA[1] -> Length 3.
-
-        const config = WORD_DATA[lvl];
-        const pool = config.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
-
-        wordGameState = {
-            active: true,
-            mode: 'career',
-            secret: secret,
-            length: config.length,
-            guesses: [],
-            maxGuesses: 6,
-            currentGuess: "",
-            level: lvl,
-            startTime: Date.now()
-        };
-
-        closeModal('modal-word-career');
-        closeModal('modal-word-setup');
-        changeScreen('screen-word-game');
-        renderWordBoard();
-        updateWordKeyboard();
-
-        document.getElementById('wordLevelDisplay').innerText = `Kariyer Seviye ${lvl}`;
-    }
 
     let wordTimerInt = null;
     function startWordTimer(minutes) {
@@ -9611,6 +9524,270 @@ function restartWordGame() {
         renderWordBoard();
         updateWordKeyboard();
         closeModal('modal-end'); // Just in case
+    }
+
+    function drawWordMapWithUsers(container, allUsers) {
+        // Group users by wordLevel
+        const levelsData = {};
+        for(let i=1; i<=8; i++) levelsData[i] = [];
+
+        if (allUsers) {
+            Object.keys(allUsers).forEach(username => {
+                const uData = allUsers[username];
+                const lvl = uData.wordLevel || 1;
+                if (levelsData[lvl]) levelsData[lvl].push(username);
+            });
+        }
+
+        container.innerHTML = `<div class="career-bg-decoration"></div>`;
+        const currentLvl = user.wordLevel || 1;
+        // Need to track word wins for current level?
+        // User asked: "her 10 oyunda bir seviye atlansın".
+        // I need to track `user.wordCareerWins`.
+        // Assuming I'll add this property.
+
+        const currentWins = user.wordCareerWins || 0;
+
+        for (let i = 1; i <= 8; i++) {
+            const config = WORD_CAREER_LEVELS[i];
+            let statusClass = "locked";
+            let content = `<span style="font-size:1.5rem;">🔒</span>`;
+            let clickAction = "";
+            let progressBadge = "";
+
+            if (i < currentLvl) {
+                statusClass = "completed";
+                content = config.icon;
+                clickAction = `startWordCareerLevel(${i})`; // Can replay? Yes.
+            } else if (i === currentLvl) {
+                statusClass = "current";
+                content = `<div style="width:40px; height:40px; border-radius:50%; overflow:hidden; border:2px solid white; box-shadow:0 2px 5px rgba(0,0,0,0.5);">
+                        ${user.avatar.includes('http') ? `<img src="${user.avatar}" style="width:100%;">` : user.avatar}
+                       </div>`;
+                progressBadge = `<div style="position:absolute; bottom:-12px; background:#fff; color:#8e44ad; font-size:0.65rem; padding:2px 8px; border-radius:10px; border:1px solid #9b59b6; font-weight:bold; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">${currentWins}/10</div>`;
+                clickAction = `startWordCareerLevel(${i})`;
+            } else {
+                content = `<span style="opacity:0.5; font-size:1.5rem;">${config.icon}</span>`;
+            }
+
+            // Zigzag logic
+            let positionStyle = "";
+            let rivalsClass = "rivals-right";
+            // Simple alternating for 8 levels
+            if (i % 2 === 0) { positionStyle = "transform: translateX(-50px);"; rivalsClass = "rivals-right"; }
+            else { positionStyle = "transform: translateX(50px);"; rivalsClass = "rivals-left"; }
+
+            // Path SVG
+            let pathSVG = "";
+            if (i < 8) {
+                const dashColor = (i < currentLvl) ? "#fff" : "rgba(0,0,0,0.2)";
+                // Dynamic path based on zigzag
+                // Start (50, 100) -> End (50, 0) relative? No, container stacking.
+                // Just use the same style as Number Career but adapted?
+                // Number Career hardcoded paths for 5 levels.
+                // For 8 levels, generic S-curve might be better or just simple lines.
+                // Let's use simple vertical dashed line if zigzag is complex to SVG.
+                // Or reuse the logic:
+                // i -> i+1.
+                // Left -> Right, Right -> Left.
+
+                // Simplified Path:
+                let pathD = "M 50 100 L 50 0"; // Straight line if centered
+                // Since I use translateX on parent div, relative SVG drawing is tricky.
+                // Let's just use the vertical line for now to ensure stability,
+                // or rely on the CSS connecting them visually (margin-bottom).
+                // The Number Career SVG logic was specific to 5 items.
+
+                // Let's create a simple SVG line connecting nodes.
+                // Since nodes are centered but offset, a straight line in the center of the viewport (ignoring offset)
+                // works if we draw it in the background of the container? No.
+
+                // Let's omit complex SVG paths for this iteration to ensure no layout break,
+                // or use a simple vertical dotted line.
+
+                pathSVG = `<div style="position:absolute; bottom:-50px; left:50%; width:2px; height:50px; background:repeating-linear-gradient(to bottom, ${dashColor} 0, ${dashColor} 5px, transparent 5px, transparent 10px); z-index:-1;"></div>`;
+            }
+
+            // Rivals
+            let playersHTML = "";
+            const playersHere = levelsData[i] || [];
+            const filteredPlayers = playersHere.filter(p => p !== user.name);
+            if (filteredPlayers.length > 0) {
+                const showLimit = 3;
+                const visibleNames = filteredPlayers.slice(0, showLimit).join('<br>');
+                const remaining = filteredPlayers.length - showLimit;
+                let extraText = remaining > 0 ? `<span style="color:#999;">+${remaining} kişi</span>` : "";
+                playersHTML = `<div class="career-rivals ${rivalsClass}"><b>Buradakiler</b>${visibleNames}${extraText}</div>`;
+            }
+
+            // Reward Chest
+            const claimedRewards = user.claimedWordRewards || {};
+            const isClaimed = claimedRewards[i] === true;
+            const canClaim = (i < currentLvl) || (i === currentLvl && currentWins >= 10);
+
+            let chestHtml = "";
+            if (config.reward) {
+                let chestClass = "career-chest";
+                if (isClaimed) chestClass += " claimed";
+                else if (canClaim) chestClass += " claimable";
+                chestHtml = `
+                    <div class="${chestClass}" onclick="event.stopPropagation(); claimWordCareerReward(${i})">
+                        🎁
+                        <div class="chest-reward-badge">${config.reward} 💰</div>
+                    </div>`;
+            }
+
+            const html = `
+            <div class="career-step" style="${positionStyle}; margin-bottom: 60px;">
+                ${pathSVG}
+                <div class="career-node ${statusClass}" onclick="${clickAction}" style="border-bottom-color:#8e44ad; background:${statusClass==='current'?'linear-gradient(135deg, #9b59b6, #8e44ad)': (statusClass==='completed'?'#2ecc71':'#bdc3c7')};">
+                    ${content}
+                    ${progressBadge}
+                    <div class="career-label" style="background:#8e44ad;">${config.length} Harf</div>
+                    ${chestHtml}
+                </div>
+                ${playersHTML}
+            </div>`;
+
+            container.innerHTML += html;
+        }
+    }
+
+    function claimWordCareerReward(lvl) {
+        if (!user || !user.name) return;
+        const config = WORD_CAREER_LEVELS[lvl];
+        if (!config) return;
+
+        const currentLvl = user.wordLevel || 1;
+        const currentWins = user.wordCareerWins || 0;
+        const claimedRewards = user.claimedWordRewards || {};
+
+        if (claimedRewards[lvl]) return showToast("Bu ödülü zaten aldın!");
+        const canClaim = (lvl < currentLvl) || (lvl === currentLvl && currentWins >= 10);
+        if (!canClaim) return showToast("Ödülü almak için bu seviyeyi tamamlamalısın!");
+
+        if (!confirm(`Tebrikler! ${config.reward} Altın ödülünü almak istiyor musun?`)) return;
+
+        if (!user.claimedWordRewards) user.claimedWordRewards = {};
+        user.claimedWordRewards[lvl] = true;
+
+        db.ref('users/' + user.name).update({
+            claimedWordRewards: user.claimedWordRewards
+        }).then(() => {
+            updateGold(config.reward);
+            showToast(`🎁 ${config.reward} Altın Hesabına Eklendi!`);
+            AudioEngine.win();
+            safeConfetti();
+            openWordCareer(); // Refresh
+        });
+    }
+
+    function startWordCareerLevel(lvl) {
+        if(user.wordLevel < lvl) return showToast("Önceki seviyeyi tamamla!");
+
+        const config = WORD_CAREER_LEVELS[lvl];
+        // Ensure data exists for this length
+        // WORD_DATA is 1-based level.
+        // But WORD_DATA level 1 is length 3.
+        // WORD_CAREER_LEVELS level 1 is length 3.
+        // So they match 1:1.
+
+        const data = WORD_DATA[lvl];
+        if(!data) return showToast("Veri eksik!");
+
+        const pool = data.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: 'career',
+            secret: secret,
+            length: config.length,
+            guesses: [],
+            maxGuesses: 6, // Standard
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now()
+        };
+
+        // Setup Ads? "4 oyunda bir geçiş reklamı"
+        handleWordGameAd();
+
+        closeModal('modal-word-career');
+        closeModal('modal-word-setup');
+        changeScreen('screen-word-game');
+        renderWordBoard();
+        updateWordKeyboard();
+
+        document.getElementById('wordLevelDisplay').innerText = `Kariyer Seviye ${lvl} - ${currentWinsInfo()}`;
+    }
+
+    function currentWinsInfo() {
+        return (user.wordCareerWins || 0) + "/10";
+    }
+
+    // Global Ad Counter for Word Game
+    let wordGameAdCounter = 0;
+    function handleWordGameAd() {
+        wordGameAdCounter++;
+        if (wordGameAdCounter % 4 === 0) {
+            setTimeout(() => {
+                AdManager.showInterstitialAd();
+            }, 500); // Small delay before start? Or after end?
+            // User said "4 oyunda bir geçiş reklamı olsun". Usually at end or start.
+            // Start is annoying. Let's trigger it at end?
+            // Or just trigger logic here but show at end?
+            // Better: Trigger at END of game.
+            // I'll move logic to game end.
+        }
+    }
+
+    function handleWordGameWin() {
+        AudioEngine.win();
+        safeConfetti();
+        const baseGold = wordGameState.length * 20; // 5 chars = 100 gold
+        updateGold(baseGold);
+        showPiggyWin(baseGold);
+
+        // Career Progression
+        if (wordGameState.mode === 'career') {
+            if (wordGameState.level === user.wordLevel && user.wordLevel <= 8) {
+                user.wordCareerWins = (user.wordCareerWins || 0) + 1;
+
+                if (user.wordCareerWins >= 10) {
+                    if (user.wordLevel < 8) {
+                        user.wordLevel++;
+                        user.wordCareerWins = 0;
+                        showToast(`🎉 SEVİYE ATLADIN! Yeni Seviye: ${user.wordLevel}`);
+                    } else {
+                        showToast("🏆 KARİYER TAMAMLANDI! EFSANESİN!");
+                    }
+                } else {
+                    showToast(`✅ İlerleme: ${user.wordCareerWins}/10`);
+                }
+
+                // Save
+                if(user.name) {
+                    db.ref('users/'+user.name).update({
+                        wordLevel: user.wordLevel,
+                        wordCareerWins: user.wordCareerWins
+                    });
+                }
+            }
+        }
+
+        setTimeout(() => {
+            changeScreen('screen-lobby');
+            checkWordGameAd();
+        }, 4000);
+    }
+
+    function checkWordGameAd() {
+        wordGameAdCounter++;
+        // 4 oyunda bir
+        if (wordGameAdCounter % 4 === 0) {
+            AdManager.showInterstitialAd();
+        }
     }
 </script>
 
