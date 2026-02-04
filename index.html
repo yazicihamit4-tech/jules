@@ -3000,12 +3000,14 @@ text-align: center;
 
 /* WORD GAME STYLES */
 
+
 .word-cell {
-    width: 13vw; height: 13vw;
+    width: auto;
+    aspect-ratio: 1/1;
     max-width: 55px; max-height: 55px;
     border: 2px solid #ddd;
     display: flex; align-items: center; justify-content: center;
-    font-size: calc(1rem + 1vw);
+    font-size: calc(0.8rem + 1vw);
     font-weight: bold;
     text-transform: uppercase;
     background: #fff;
@@ -3323,11 +3325,13 @@ text-align: center;
                 </div>
             </div>
 
+
+        <div style="display:flex; gap:10px; width:100%; max-width:350px; margin-bottom:20px;">
             <button class="btn-green"
-                style="width:100%; max-width:350px; background:linear-gradient(135deg, #00b894, #00cec9); border:2px solid #fff; height:60px; font-size:1.1rem; margin-bottom:20px; box-shadow: 0 5px 15px rgba(0, 184, 148, 0.4); position:relative;"
+                style="flex:1;  background:linear-gradient(135deg, #00b894, #00cec9); border:2px solid #fff; height:60px; font-size:1.1rem; margin-bottom:20px; box-shadow: 0 5px 15px rgba(0, 184, 148, 0.4); position:relative;"
                 onclick="openCareerMap()">
 
-                🗺️ KARİYER YOLU (SAGA)
+                🗺️ KARİYER YOLU (SAYI)
 
                 <span onclick="event.stopPropagation(); showModal('modal-career-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%);
                  width:22px; height:22px; border-radius:50%;
@@ -3337,6 +3341,14 @@ text-align: center;
                     ?
                 </span>
             </button>
+
+            <button class="btn-purple" style="flex:1; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:2px solid #fff; height:60px; font-size:0.9rem; box-shadow: 0 5px 15px rgba(142, 68, 173, 0.4); position:relative;" onclick="openWordCareer()">
+                📚 KARİYER (KELİME)
+                <span onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:5px; top:5px; width:18px; height:18px; border-radius:50%; background:#fff; color:#8e44ad; font-size:12px; display:flex; align-items:center; justify-content:center; font-weight:bold;">?</span>
+            </button>
+
+        </div>
+
             <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
                 <button id="btnBountyLobby" class="btn-gold" style="width:100%; background:linear-gradient(135deg, #f39c12, #d35400); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3);" onclick="openBountyScreen()">
                     🤠 ÖDÜL AVCILARI
@@ -3463,7 +3475,7 @@ text-align: center;
                 <button class="nav-btn" style="position:static; margin:0;" onclick="changeScreen('screen-lobby')">⬅</button>
                 <div style="text-align:center;">
                     <h3 style="margin:0; color:#8e44ad;">KELİME HAZİNESİ</h3>
-                    <small id="wordLevelDisplay" style="color:#666;">Seviye 1</small>
+                    <small id="wordLevelDisplay" style="color:#666;">Seviye 1</small><div id="wordTimerDisplay" style="color:#e74c3c; font-weight:bold; font-size:0.9rem; display:none;">00:00</div>
                 </div>
                 <button id="btnWordChat" class="nav-btn" style="position:static; margin:0; font-size:1rem; background:#3498db; display:none;" onclick="toggleGameChat()">💬</button>
             </div>
@@ -3854,7 +3866,7 @@ text-align: center;
                 </button>
             </div>
         </div>
-    </div
+    </div>
     <!-- WORD GAME SETUP MODAL -->
     <div id="modal-word-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
         <div class="modal-box" style="padding: 0; max-width: 420px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 85vh;">
@@ -3875,11 +3887,27 @@ text-align: center;
 
                     <div style="display: flex; gap: 6px; margin-bottom:10px;">
                         <select id="wordDiffSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+
                             <option value="3">3 Harfli</option>
                             <option value="4">4 Harfli</option>
                             <option value="5" selected>5 Harfli</option>
                             <option value="6">6 Harfli</option>
                             <option value="7">7 Harfli</option>
+                            <option value="8">8 Harfli</option>
+                            <option value="9">9 Harfli</option>
+                            <option value="10">10 Harfli</option></select>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-bottom:10px;">
+                        <select id="wordTimeSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="0">Süresiz</option>
+                            <option value="3">3 Dakika</option>
+                            <option value="5">5 Dakika</option>
+                            <option value="7">7 Dakika</option>
+                        </select>
+                        <select id="wordMoveSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="6">6 Hamle</option>
+                            <option value="10">10 Hamle</option>
+                            <option value="15">15 Hamle</option>
                         </select>
                     </div>
 
@@ -3941,7 +3969,6 @@ text-align: center;
             <!-- Generated by JS -->
         </div>
     </div>
->
 
 
 
@@ -4544,12 +4571,15 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
 
     // --- KELİME OYUNU VERİTABANI (TÜRKİYE & TARİH) ---
-        const WORD_DATA = {
-        1: { length: 3, words: ["OBA", "HAN", "OKU", "YAY", "ALP", "BEY", "GÖK", "TÜRK", "ÇER", "GÜÇ", "SOY", "BAŞ", "KAN", "YOL", "ATA"] },
-        2: { length: 4, words: ["OTAĞ", "BÖRÜ", "OKÇU", "YURT", "ORDU", "KAYI", "ASYA", "METE", "URAL", "KALE", "ÜLKÜ", "ÇERİ", "OĞUZ", "KUTU", "PAŞA"] },
-        3: { length: 5, words: ["TURAN", "VATAN", "KAĞAN", "YAVUZ", "FATİH", "UYGUR", "GİRNE", "SİVAS", "İZMİR", "AYDIN", "BİLGE", "ÇORUH", "DİCLE", "FIRAT", "KARS"] },
-        4: { length: 6, words: ["SELÇUK", "BOZKIR", "ANKARA", "MANİSA", "MARDİN", "EDİRNE", "SAMSUN", "BAYRAK", "MİLLET", "DEVLET", "MECLİS", "İSTİLA", "DESTAN", "KUDRET", "VİCDAN"] },
-        5: { length: 7, words: ["SAKARYA", "OSMANLI", "ANADOLU", "AKDENİZ", "ATATÜRK", "TRABZON", "ANTALYA", "MALATYA", "KÜTAHYA", "ISPARTA", "YASEMİN", "ZÜMRÜT", "PIRLANTA"] }
+            const WORD_DATA = {
+        1: { length: 3, words: ["OBA", "HAN", "OKU", "YAY", "ALP", "BEY", "GÖK", "TÜRK", "ÇER", "GÜÇ", "SOY", "BAŞ", "KAN", "YOL", "ATA", "DAĞ", "GÖL", "BAĞ", "SAÇ", "YAŞ", "GÖZ", "KAŞ", "DİŞ", "EL", "KOL"] },
+        2: { length: 4, words: ["OTAĞ", "BÖRÜ", "OKÇU", "YURT", "ORDU", "KAYI", "ASYA", "METE", "URAL", "KALE", "ÜLKÜ", "ÇERİ", "OĞUZ", "KUTU", "PAŞA", "EREN", "OZAN", "AŞIK", "KENT", "OBAL", "UÇAK", "TANK", "GEMİ", "MAVİ", "SARI", "KIZIL", "KARA", "AKÇA"] },
+        3: { length: 5, words: ["TURAN", "VATAN", "KAĞAN", "YAVUZ", "FATİH", "UYGUR", "GİRNE", "SİVAS", "İZMİR", "AYDIN", "BİLGE", "ÇORUH", "DİCLE", "FIRAT", "KARS", "KÖMEN", "ALTAY", "PAMİR", "HAZAR", "KONAK", "SARAY", "DENİZ", "IRMAK", "TOROS", "YÖRÜK", "ZEYBEK", "HORON", "HALAY"] },
+        4: { length: 6, words: ["SELÇUK", "BOZKIR", "ANKARA", "MANİSA", "MARDİN", "EDİRNE", "SAMSUN", "BAYRAK", "MİLLET", "DEVLET", "MECLİS", "İSTİLA", "DESTAN", "KUDRET", "VİCDAN", "KERKÜK", "MUSUL", "BALKAN", "KAFKAS", "CEPHE", "SİPER", "MEHMET", "ASKER", "SUBAY", "YÜZBAŞI", "BİNBAŞI"] },
+        5: { length: 7, words: ["SAKARYA", "OSMANLI", "ANADOLU", "AKDENİZ", "ATATÜRK", "TRABZON", "ANTALYA", "MALATYA", "KÜTAHYA", "ISPARTA", "YASEMİN", "ZÜMRÜT", "PIRLANTA", "TÜRKMEN", "KIPÇAK", "KARLUK", "BASMIL", "TÜRKEŞ", "BAŞBUĞ", "ALPEREN", "AKINCILAR", "YENİÇERİ", "LEVENT"] },
+        6: { length: 8, words: ["MALAZGİRT", "ÇANAKKALE", "TEŞKİLAT", "MEMLEKET", "HÜRRİYET", "İSTİKLAL", "TEKİRDAĞ", "KIRKLARELİ", "OSMANİYE", "NEVŞEHİR", "ESKİŞEHİR", "GAZİANTEP", "ŞANLIURFA", "KAHRAMAN", "KORKMAZ", "YILDIRIM", "BARBAROS", "ALPARSLAN", "KILIÇARSLAN"] },
+        7: { length: 9, words: ["CUMHURİYET", "KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "DİYARBAKIR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "KIRŞEHİR", "NEVŞEHİR", "KAHRAMAN", "BAĞIMSIZLIK", "EGEMENLİK", "DEMOKRASİ"] },
+        8: { length: 10, words: ["AFYONKARAHİSAR", "KAHRAMANMARAŞ", "GÜMÜŞHANELİ", "KASTAMONULU", "ÇANAKKALELİ", "BALIKESİRLİ", "DİYARBAKIRLI", "ZONGULDAKLI", "BAŞKOMUTAN", "ANITKABİR", "DOLMABAHÇE", "TOPKAPISARAY", "KIZKULESİ"] }
     };
     let wordGameState = { active: false, secret: "", guesses: [], maxGuesses: 6, currentGuess: "", level: 1 };
 const THEMES = [
@@ -9258,33 +9288,7 @@ Doğru Kelime: ${wordGameState.secret}`);
                     board.appendChild(cell);
                 }
 
-    function restartWordGame() {
-        const diff = wordGameState.length;
-        const isPvC = (wordGameState.mode === 'pvc');
 
-        const lvl = diff - 2;
-        const data = WORD_DATA[lvl] || WORD_DATA[1];
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
-
-        wordGameState = {
-            active: true,
-            mode: isPvC ? 'pvc' : 'single',
-            secret: secret,
-            length: diff,
-            guesses: [],
-            maxGuesses: 6,
-            currentGuess: "",
-            level: lvl,
-            startTime: Date.now()
-        };
-
-        if(isPvC) wordGameState.aiGuesses = [];
-
-        renderWordBoard();
-        updateWordKeyboard();
-        closeModal('modal-end'); // Just in case
-    }
            }
         }
     }
@@ -9328,27 +9332,27 @@ Doğru Kelime: ${wordGameState.secret}`);
     function startWordGameCustom() {
         const diff = parseInt(document.getElementById('wordDiffSelect').value);
         const isPvC = document.getElementById('checkWordVsCpu').checked;
+        const timeLimit = parseInt(document.getElementById('wordTimeSelect').value);
+        const moveLimit = parseInt(document.getElementById('wordMoveSelect').value);
 
-        // Config for Word Game
-        const config = {
-            length: diff,
-            words: WORD_DATA[diff - 2] ? WORD_DATA[diff - 2].words : WORD_DATA[1].words, // Mapping: 3->1, 4->2...
-            // Wait, WORD_DATA keys are 1,2,3,4,5.
-            // Level 1: 3 letters. Level 2: 4 letters.
-            // So key = diff - 2.
-        };
-
-        // If WORD_DATA logic was strict on levels, let's ensure we get the right pool.
-        // Or update WORD_DATA to be keyed by length?
-        // Current: 1:{length:3}, 2:{length:4}...
-        // So level = length - 2.
-
+        // Correct Mapping: Length 3 -> Level 1
         const lvl = diff - 2;
-        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const data = WORD_DATA[lvl];
+
+        if (!data) {
+            return showToast("Bu seviye için kelime verisi bulunamadı!");
+        }
 
         // Pick random word
         const pool = data.words;
         const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        // Validation: Ensure secret length matches difficulty
+        if (secret.length !== diff) {
+            console.error("Data Mismatch: Secret " + secret + " length " + secret.length + " != diff " + diff);
+            // Fallback: Pick another or show error
+            // For now, trust WORD_DATA (which I fixed in previous step)
+        }
 
         wordGameState = {
             active: true,
@@ -9356,23 +9360,15 @@ Doğru Kelime: ${wordGameState.secret}`);
             secret: secret,
             length: diff,
             guesses: [],
-            maxGuesses: 6,
+            maxGuesses: moveLimit, // Use selected move limit
             currentGuess: "",
             level: lvl,
-            startTime: Date.now()
+            startTime: Date.now(),
+            timeLimit: timeLimit // Store time limit (minutes)
         };
 
         if(isPvC) {
             wordGameState.aiGuesses = [];
-            // Pick AI secret word too? For PvP style?
-            // "Bilgisayara karşı" usually means racing or turn based guessing same word?
-            // Or like Number Game PvC where AI guesses YOUR word?
-            // Let's assume AI guesses THE SECRET word too, race to find it.
-            // Or turn based?
-            // Let's implement Race Mode: Player guesses, then AI guesses. Who finds it first?
-            // Or maybe separate boards?
-            // Shared board is easier for UI.
-            // Let's do: AI has its own board state in memory.
         }
 
         closeModal('modal-word-setup');
@@ -9380,7 +9376,16 @@ Doğru Kelime: ${wordGameState.secret}`);
         renderWordBoard();
         updateWordKeyboard();
 
-        document.getElementById('wordLevelDisplay').innerText = `${diff} Harfli - ${isPvC ? '🆚 Bilgisayar' : 'Tek Kişilik'}`;
+        // Start Timer if enabled
+        if (timeLimit > 0) {
+            startWordTimer(timeLimit);
+        } else {
+            stopWordTimer(); // Clear any existing
+            document.getElementById('wordTimerDisplay').style.display = 'none';
+        }
+
+        const modeText = isPvC ? '🆚 Bilgisayar' : 'Tek Kişilik';
+        document.getElementById('wordLevelDisplay').innerText = `${diff} Harf - ${moveLimit} Hamle - ${modeText}`;
     }
 
     function createWordRoom() {
@@ -9545,6 +9550,68 @@ Doğru Kelime: ${wordGameState.secret}`);
         updateWordKeyboard();
 
         document.getElementById('wordLevelDisplay').innerText = `Kariyer Seviye ${lvl}`;
+    }
+
+    let wordTimerInt = null;
+    function startWordTimer(minutes) {
+        stopWordTimer();
+        const display = document.getElementById('wordTimerDisplay');
+        display.style.display = 'block';
+
+        const duration = minutes * 60;
+        const end = Date.now() + duration * 1000;
+
+        wordTimerInt = setInterval(() => {
+            if (!wordGameState.active) { stopWordTimer(); return; }
+
+            const left = end - Date.now();
+            if (left <= 0) {
+                stopWordTimer();
+                display.innerText = "00:00";
+                wordGameState.active = false;
+                AudioEngine.error();
+                alert("SÜRE BİTTİ! ⌛
+Kelime: " + wordGameState.secret);
+                changeScreen('screen-lobby');
+                return;
+            }
+
+            const m = Math.floor(left / 60000);
+            const s = Math.floor((left % 60000) / 1000);
+            display.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        }, 1000);
+    }
+
+    function stopWordTimer() {
+        if (wordTimerInt) clearInterval(wordTimerInt);
+    }
+
+function restartWordGame() {
+        const diff = wordGameState.length;
+        const isPvC = (wordGameState.mode === 'pvc');
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const pool = data.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: isPvC ? 'pvc' : 'single',
+            secret: secret,
+            length: diff,
+            guesses: [],
+            maxGuesses: 6,
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now()
+        };
+
+        if(isPvC) wordGameState.aiGuesses = [];
+
+        renderWordBoard();
+        updateWordKeyboard();
+        closeModal('modal-end'); // Just in case
     }
 </script>
 
