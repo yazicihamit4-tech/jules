@@ -4581,13 +4581,13 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 
     // --- KELİME OYUNU VERİTABANI (TÜRKİYE & TARİH) ---
             const WORD_DATA = {
-        1: { length: 3, words: ["OBA", "HAN", "OKU", "YAY", "ALP", "BEY", "GÖK", "TÜRK", "ÇER", "GÜÇ", "SOY", "BAŞ", "KAN", "YOL", "ATA", "DAĞ", "GÖL", "BAĞ", "SAÇ", "YAŞ", "GÖZ", "KAŞ", "DİŞ", "EL", "KOL"] },
-        2: { length: 4, words: ["OTAĞ", "BÖRÜ", "OKÇU", "YURT", "ORDU", "KAYI", "ASYA", "METE", "URAL", "KALE", "ÜLKÜ", "ÇERİ", "OĞUZ", "KUTU", "PAŞA", "EREN", "OZAN", "AŞIK", "KENT", "OBAL", "UÇAK", "TANK", "GEMİ", "MAVİ", "SARI", "KIZIL", "KARA", "AKÇA"] },
-        3: { length: 5, words: ["TURAN", "VATAN", "KAĞAN", "YAVUZ", "FATİH", "UYGUR", "GİRNE", "SİVAS", "İZMİR", "AYDIN", "BİLGE", "ÇORUH", "DİCLE", "FIRAT", "KARS", "KÖMEN", "ALTAY", "PAMİR", "HAZAR", "KONAK", "SARAY", "DENİZ", "IRMAK", "TOROS", "YÖRÜK", "ZEYBEK", "HORON", "HALAY"] },
-        4: { length: 6, words: ["SELÇUK", "BOZKIR", "ANKARA", "MANİSA", "MARDİN", "EDİRNE", "SAMSUN", "BAYRAK", "MİLLET", "DEVLET", "MECLİS", "İSTİLA", "DESTAN", "KUDRET", "VİCDAN", "KERKÜK", "MUSUL", "BALKAN", "KAFKAS", "CEPHE", "SİPER", "MEHMET", "ASKER", "SUBAY", "YÜZBAŞI", "BİNBAŞI"] },
-        5: { length: 7, words: ["SAKARYA", "OSMANLI", "ANADOLU", "AKDENİZ", "ATATÜRK", "TRABZON", "ANTALYA", "MALATYA", "KÜTAHYA", "ISPARTA", "YASEMİN", "ZÜMRÜT", "PIRLANTA", "TÜRKMEN", "KIPÇAK", "KARLUK", "BASMIL", "TÜRKEŞ", "BAŞBUĞ", "ALPEREN", "AKINCILAR", "YENİÇERİ", "LEVENT"] },
-        6: { length: 8, words: ["TEŞKİLAT", "MEMLEKET", "HÜRRİYET", "İSTİKLAL", "TEKİRDAĞ", "OSMANİYE", "NEVŞEHİR", "KAHRAMAN", "YILDIRIM", "BARBAROS"] },
-        7: { length: 9, words: ["KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "EGEMENLİK", "DEMOKRASİ", "ANITKABİR", "ESKİŞEHİR", "ŞANLIURFA", "ALPARSLAN", "MALAZGİRT"] },
+        1: { length: 3, words: ["OBA", "HAN", "OKU", "YAY", "ALP", "BEY", "GÖK", "ÇER", "GÜÇ", "SOY", "BAŞ", "KAN", "YOL", "ATA", "DAĞ", "GÖL", "BAĞ", "SAÇ", "YAŞ", "GÖZ", "KAŞ", "DİŞ", "KOL", "TAY", "HAK", "PİR", "ŞAH", "MAT", "ZAM"] },
+        2: { length: 4, words: ["OTAĞ", "BÖRÜ", "OKÇU", "YURT", "ORDU", "KAYI", "ASYA", "METE", "URAL", "KALE", "ÜLKÜ", "ÇERİ", "OĞUZ", "KUTU", "PAŞA", "EREN", "OZAN", "AŞIK", "KENT", "OBAL", "UÇAK", "TANK", "GEMİ", "MAVİ", "SARI", "KARA", "AKÇA", "DERS", "MARŞ", "TÜRK"] },
+        3: { length: 5, words: ["TURAN", "VATAN", "KAĞAN", "YAVUZ", "FATİH", "UYGUR", "GİRNE", "SİVAS", "İZMİR", "AYDIN", "BİLGE", "ÇORUH", "DİCLE", "FIRAT", "KÖMEN", "ALTAY", "PAMİR", "HAZAR", "KONAK", "SARAY", "DENİZ", "IRMAK", "TOROS", "YÖRÜK", "HORON", "HALAY", "KIZIL", "GÜNEŞ", "BAHAR", "ŞEHİR"] },
+        4: { length: 6, words: ["SELÇUK", "BOZKIR", "ANKARA", "MANİSA", "MARDİN", "EDİRNE", "SAMSUN", "BAYRAK", "MİLLET", "DEVLET", "MECLİS", "İSTİLA", "DESTAN", "KUDRET", "VİCDAN", "KERKÜK", "BALKAN", "KAFKAS", "MEHMET", "ZEYBEK", "KIPÇAK", "KARLUK", "BASMIL", "TÜRKEŞ", "BAŞBUĞ", "LEVENT", "ZÜMRÜT", "BARDAK", "TABYAR"] },
+        5: { length: 7, words: ["SAKARYA", "OSMANLI", "ANADOLU", "AKDENİZ", "ATATÜRK", "TRABZON", "ANTALYA", "MALATYA", "KÜTAHYA", "ISPARTA", "YASEMİN", "TÜRKMEN", "ALPEREN", "YÜZBAŞI", "BİNBAŞI", "KOMUTAN", "TELEFON", "MERHABA", "PENCERE", "SAVAŞÇI", "TÜRKELİ"] },
+        6: { length: 8, words: ["TEŞKİLAT", "MEMLEKET", "HÜRRİYET", "İSTİKLAL", "TEKİRDAĞ", "OSMANİYE", "NEVŞEHİR", "KAHRAMAN", "YILDIRIM", "BARBAROS", "PIRLANTA", "YENİÇERİ", "BAŞBAKAN", "SANDALYE", "İSTANBUL"] },
+        7: { length: 9, words: ["KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "EGEMENLİK", "DEMOKRASİ", "ESKİŞEHİR", "ŞANLIURFA", "ALPARSLAN", "MALAZGİRT", "AKINCILAR", "BAŞKENTLİ", "CUMARTESİ", "PAZARTESİ"] },
         8: { length: 10, words: ["BAŞKOMUTAN", "DOLMABAHÇE", "CUMHURİYET", "DİYARBAKIR", "KIRKLARELİ", "BÜYÜKŞEHİR", "FENERBAHÇE", "ÜNİVERSİTE", "TELEVİZYON", "BİLGİSAYAR", "ARKADAŞLIK", "ÖĞRETMENİM", "HASTANELER"] }
     };
     // --- KELİME KARİYER AYARLARI ---
