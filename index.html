@@ -4576,9 +4576,9 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         3: { length: 5, words: ["TURAN", "VATAN", "KAĞAN", "YAVUZ", "FATİH", "UYGUR", "GİRNE", "SİVAS", "İZMİR", "AYDIN", "BİLGE", "ÇORUH", "DİCLE", "FIRAT", "KARS", "KÖMEN", "ALTAY", "PAMİR", "HAZAR", "KONAK", "SARAY", "DENİZ", "IRMAK", "TOROS", "YÖRÜK", "ZEYBEK", "HORON", "HALAY"] },
         4: { length: 6, words: ["SELÇUK", "BOZKIR", "ANKARA", "MANİSA", "MARDİN", "EDİRNE", "SAMSUN", "BAYRAK", "MİLLET", "DEVLET", "MECLİS", "İSTİLA", "DESTAN", "KUDRET", "VİCDAN", "KERKÜK", "MUSUL", "BALKAN", "KAFKAS", "CEPHE", "SİPER", "MEHMET", "ASKER", "SUBAY", "YÜZBAŞI", "BİNBAŞI"] },
         5: { length: 7, words: ["SAKARYA", "OSMANLI", "ANADOLU", "AKDENİZ", "ATATÜRK", "TRABZON", "ANTALYA", "MALATYA", "KÜTAHYA", "ISPARTA", "YASEMİN", "ZÜMRÜT", "PIRLANTA", "TÜRKMEN", "KIPÇAK", "KARLUK", "BASMIL", "TÜRKEŞ", "BAŞBUĞ", "ALPEREN", "AKINCILAR", "YENİÇERİ", "LEVENT"] },
-        6: { length: 8, words: ["MALAZGİRT", "ÇANAKKALE", "TEŞKİLAT", "MEMLEKET", "HÜRRİYET", "İSTİKLAL", "TEKİRDAĞ", "KIRKLARELİ", "OSMANİYE", "NEVŞEHİR", "ESKİŞEHİR", "GAZİANTEP", "ŞANLIURFA", "KAHRAMAN", "KORKMAZ", "YILDIRIM", "BARBAROS", "ALPARSLAN", "KILIÇARSLAN"] },
-        7: { length: 9, words: ["CUMHURİYET", "KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "DİYARBAKIR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "KIRŞEHİR", "NEVŞEHİR", "KAHRAMAN", "BAĞIMSIZLIK", "EGEMENLİK", "DEMOKRASİ"] },
-        8: { length: 10, words: ["AFYONKARAHİSAR", "KAHRAMANMARAŞ", "GÜMÜŞHANELİ", "KASTAMONULU", "ÇANAKKALELİ", "BALIKESİRLİ", "DİYARBAKIRLI", "ZONGULDAKLI", "BAŞKOMUTAN", "ANITKABİR", "DOLMABAHÇE", "TOPKAPISARAY", "KIZKULESİ"] }
+        6: { length: 8, words: ["TEŞKİLAT", "MEMLEKET", "HÜRRİYET", "İSTİKLAL", "TEKİRDAĞ", "OSMANİYE", "NEVŞEHİR", "KAHRAMAN", "YILDIRIM", "BARBAROS"] },
+        7: { length: 9, words: ["KASTAMONU", "ZONGULDAK", "GÜMÜŞHANE", "ÇANAKKALE", "BALIKESİR", "GAZİANTEP", "KIRIKKALE", "ADAPAZARI", "EGEMENLİK", "DEMOKRASİ", "ANITKABİR", "ESKİŞEHİR", "ŞANLIURFA", "ALPARSLAN", "MALAZGİRT"] },
+        8: { length: 10, words: ["BAŞKOMUTAN", "DOLMABAHÇE", "CUMHURİYET", "DİYARBAKIR", "KIRKLARELİ", "BÜYÜKŞEHİR", "FENERBAHÇE", "ÜNİVERSİTE", "TELEVİZYON", "BİLGİSAYAR", "ARKADAŞLIK", "ÖĞRETMENİM", "HASTANELER"] }
     };
     // --- KELİME KARİYER AYARLARI ---
     const WORD_CAREER_LEVELS = {
@@ -5737,7 +5737,25 @@ const THEMES = [
             // --- EKLENEN KISIM BİTİŞ ---
 
             user.inventory = val.inventory || [];
-            user.clan = val.clan || ""; user.wordLevel = val.wordLevel || 1;
+            user.clan = val.clan || "";
+            user.wordLevel = val.wordLevel || 1;
+            user.wordCareerWins = val.wordCareerWins || 0;
+            user.claimedWordRewards = val.claimedWordRewards || {};
+
+            // RESET LOGIC V3
+            if (!val.wordCareerResetV3) {
+                console.log("Resetting Word Career to V3 Defaults");
+                user.wordLevel = 1;
+                user.wordCareerWins = 0;
+                user.claimedWordRewards = {};
+                user.wordCareerResetV3 = true;
+                db.ref('users/' + name).update({
+                    wordLevel: 1,
+                    wordCareerWins: 0,
+                    claimedWordRewards: {},
+                    wordCareerResetV3: true
+                });
+            }
             user.winStreak = val.winStreak || 0;
             user.pet = val.pet || null; // Load pet data from DB
             user.totalMinutes = val.totalMinutes || 0; user.lastVaultTime = val.lastVaultTime || 0; user.items = val.items || { oracle: 0, freeze: 0, sabotage: 0 };
