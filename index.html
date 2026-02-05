@@ -3810,7 +3810,7 @@ text-align: center;
                     <!-- Online Player List -->
                     <div style="margin-top:10px; border-top:1px dashed #ddd; padding-top:10px;">
                         <div style="font-size:0.75rem; font-weight:bold; color:#555; margin-bottom:5px;">🟢 Aktif Oyuncular (Sayı Daveti)</div>
-                        <div id="activePlayersList" class="list-container" style="height:120px; background:#fafafa;">
+                        <div id="setupActivePlayersList" class="list-container" style="height:120px; background:#fafafa;">
                            <div style="padding:10px; text-align:center; color:#999;">Yükleniyor...</div>
                         </div>
                     </div>
@@ -6003,10 +6003,14 @@ const THEMES = [
         presenceRef.off();
         presenceRef.on('value', s => {
             const list = document.getElementById('activePlayersList');
+            const setupList = document.getElementById('setupActivePlayersList');
+            const wordSetupList = document.getElementById('wordActivePlayersList');
             const inviteList = document.getElementById('inviteListWait');
             const wordInviteList = document.getElementById('wordInviteListWait');
 
             if (list) list.innerHTML = "";
+            if (setupList) setupList.innerHTML = "";
+            if (wordSetupList) wordSetupList.innerHTML = "";
             if (inviteList) inviteList.innerHTML = "";
             if (wordInviteList) wordInviteList.innerHTML = "";
 
@@ -6016,6 +6020,7 @@ const THEMES = [
                 const pData = c.val();
                 if (c.key !== user.name && pData.status === 'online') {
                     hasData = true;
+                    // Standart HTML (Lobby, Number Setup, Number Wait)
                     const itemHTML = `
                 <div class="list-item">
                     <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
@@ -6029,10 +6034,30 @@ const THEMES = [
                 </div>`;
 
                     if (list) list.innerHTML += itemHTML;
+                    if (setupList) setupList.innerHTML += itemHTML;
                     if (inviteList) inviteList.innerHTML += itemHTML;
 
+                    // Word Game HTML (Word Setup, Word Wait) - Different Invite Function
+                    const wordItemHTML = `
+                    <div class="list-item">
+                        <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
+                            🟢 ${c.key}
+                        </span>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn-gold" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openUserProfile('${c.key}')">👤</button>
+                            <button class="btn-blue" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openDM('${c.key}')">💬</button>
+                            <button class="btn-green" style="width:auto;padding:5px;" onclick="sendWordInvite('${c.key}')">DAVET</button>
+                        </div>
+                    </div>`;
+                    // NOT: Setup ekranında direkt oda kurup davet atıyoruz (sendWordInvite)
+                    // Lobby ekranında ise mevcut odaya çağırıyoruz (inviteUserToWordRoom)
+
+                    // Word Setup Modal (New Room Invite)
+                    if (wordSetupList) wordSetupList.innerHTML += wordItemHTML;
+
+                    // Word Wait Lobby (Existing Room Invite)
                     if (wordInviteList) {
-                         const wordItemHTML = `
+                         const lobbyWordItemHTML = `
                         <div class="list-item">
                             <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
                                 🟢 ${c.key}
@@ -6043,7 +6068,7 @@ const THEMES = [
                                 <button class="btn-green" style="width:auto;padding:5px;" onclick="inviteUserToWordRoom('${c.key}')">DAVET</button>
                             </div>
                         </div>`;
-                        wordInviteList.innerHTML += wordItemHTML;
+                        wordInviteList.innerHTML += lobbyWordItemHTML;
                     }
                 }
             });
@@ -6051,6 +6076,8 @@ const THEMES = [
             if (!hasData) {
                 const noData = "<small>Kimse yok.</small>";
                 if (list) list.innerHTML = noData;
+                if (setupList) setupList.innerHTML = noData;
+                if (wordSetupList) wordSetupList.innerHTML = noData;
                 if (inviteList) inviteList.innerHTML = noData;
                 if (wordInviteList) wordInviteList.innerHTML = noData;
             }
