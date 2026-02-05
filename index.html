@@ -4523,10 +4523,9 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
         console.error("Global Error:", msg, url, line);
     };
 
-    // Alert Override to filter generic AdMob errors
+    // Alert Override (Cleaned up AdMob checks)
     const _originalAlert = window.alert;
     window.alert = function (msg) {
-        if (msg && typeof msg === "string" && (msg.toLowerCase().includes("google bu kullanıcıya reklam göndermedi") || msg.toLowerCase().includes("google bu kullanıcı için reklam göndermedi"))) return;
         if (_originalAlert) _originalAlert(msg);
     };
     let lastWidth = window.innerWidth;
@@ -4598,16 +4597,6 @@ const THEMES = [
         pendingCallback: null,
         mockRunning: false, // Prevent concurrent mocks
 
-        // Ad Configuration
-        appId: "ca-app-pub-5879474591831999~1348513678",
-
-        // AdMob Units
-        admobRewardedIds: [
-            "ca-app-pub-5879474591831999/1499369487",
-            "ca-app-pub-5879474591831999/4862883127"
-        ],
-        admobInterstitialId: "ca-app-pub-5879474591831999/9656400021",
-
         // Yandex Units
         yandexRewardedId: "R-M-18543851-1",
         yandexInterstitialId: "R-M-18543851-2",
@@ -4616,12 +4605,11 @@ const THEMES = [
 
         // Helper to pick a random unit ID from available networks
         pickRewardedUnitId: function() {
-            const pool = [...this.admobRewardedIds, this.yandexRewardedId];
-            return pool[Math.floor(Math.random() * pool.length)];
+            return this.yandexRewardedId;
         },
 
         pickInterstitialUnitId: function() {
-            return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
+            return this.yandexInterstitialId;
         },
 
         showRewardedAd: function (onSuccess) {
@@ -5030,7 +5018,6 @@ const THEMES = [
     }
     function loadTheme() { const t = localStorage.getItem("yh_active_theme"); if (t) applyTheme(t, false); }
     function showToast(m) {
-        if (m && typeof m === "string" && (m.toLowerCase().includes("google bu kullanıcıya reklam göndermedi") || m.toLowerCase().includes("google bu kullanıcı için reklam göndermedi"))) return;
         const t = document.getElementById("toast");
         t.innerText = m;
         t.className = "show";
