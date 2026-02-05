@@ -494,6 +494,9 @@
             background: #dcf8c6 !important;
             color: #000 !important;
             border-radius: 12px 12px 0 12px;
+            /* Flex layout for aligned items inside */
+            display: flex;
+            flex-direction: column;
         }
 
         .msg-other {
@@ -501,6 +504,8 @@
             background: #ffffff !important;
             color: #000 !important;
             border-radius: 12px 12px 12px 0;
+            display: flex;
+            flex-direction: column;
         }
 
         /* ÜST BAR */
@@ -5485,7 +5490,12 @@ const THEMES = [
         success: function () { this.playTone(1200, 'square', 0.1); },
         error: function () { this.playTone(300, 'sawtooth', 0.2); },
         win: function () { this.playTone(500, 'triangle', 0.2); },
-        notification: function () { this.playTone(800, 'sine', 0.1); setTimeout(() => this.playTone(1200, 'sine', 0.2), 150); },
+        notification: function () {
+            if(isMuted) return;
+            const audio = new Audio("https://cdn.pixabay.com/audio/2022/10/30/audio_5471d2b78d.mp3");
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Audio Error", e));
+        },
         heartbeat: function () { this.playTone(150, 'sine', 0.1); setTimeout(() => this.playTone(150, 'sine', 0.1), 150); },
                 coin: function () {
             if (isMuted) return;
@@ -7695,8 +7705,12 @@ function startSingle() {
             const isMe = (m.u === user.name);
             const msgClass = isMe ? 'msg-me' : 'msg-other';
 
+            // Basit Zaman ve Durum Göstergesi
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const statusHtml = isMe ? `<span style="font-size:0.65rem; color:#555; float:right; margin-top:2px;">${time} ✓</span>` : `<span style="font-size:0.65rem; color:#999; float:right; margin-top:2px;">${time}</span>`;
+
             // Mesajı ekrana yaz
-            box.innerHTML += `<div class="game-chat-msg ${msgClass}"><b>${m.u}</b><br>${m.m}</div>`;
+            box.innerHTML += `<div class="game-chat-msg ${msgClass}"><b>${m.u}</b><br>${m.m}<div style="clear:both;">${statusHtml}</div></div>`;
 
             // --- BİLDİRİM SİSTEMİ ---
             const container = document.getElementById('gameChatContainer');
@@ -8034,6 +8048,12 @@ function startSingle() {
 
         const chatID = [user.name, targetUser].sort().join('_');
 
+        // 1. BU SOHBETİ "GÖRÜLDÜ" OLARAK İŞARETLE (Sadece bana gelenler)
+        // Eğer sohbeti açan kişiye ait OLMAYAN mesajlar varsa (yani karşıdan gelenler), hepsini seen=true yap.
+        // Ancak 'chats/private/chatID' altındaki her mesajı tek tek güncellemek pahalı olabilir.
+        // Basitlik için: LastMsg işaretleme zaten yapılıyor.
+        // Burada detaylı status gösterimi için UI güncelliyoruz.
+
         db.ref('chats/private/' + chatID).limitToLast(50).on('value', snap => {
             msgBox.innerHTML = "";
 
@@ -8044,8 +8064,23 @@ function startSingle() {
 
             snap.forEach(c => {
                 const m = c.val();
-                const msgKey = c.key; // Mesajın ID'si
+                const msgKey = c.key;
                 const isMe = m.from === user.name;
+
+                // STATUS SİMGESİ (Sadece kendi mesajlarım için)
+                let statusIcon = "";
+                if (isMe) {
+                    if (m.seen) {
+                        statusIcon = `<span style="color:#3498db; font-size:0.75rem; margin-left:5px; font-weight:bold;">✓✓</span>`; // Mavi Çift Tik
+                    } else {
+                        statusIcon = `<span style="color:#999; font-size:0.75rem; margin-left:5px; font-weight:bold;">✓</span>`; // Gri Tek Tik
+                    }
+                }
+
+                // Gelen mesajları "Görüldü" yap (Eğer ben açtıysam ve henüz görülmediyse)
+                if (!isMe && !m.seen) {
+                    db.ref('chats/private/' + chatID + '/' + msgKey).update({ seen: true });
+                }
 
                 const bubbleStyle = isMe
                     ? "background:#dcf8c6; color:#000; align-self:flex-end; border-radius:15px 15px 0 15px;"
@@ -8053,14 +8088,17 @@ function startSingle() {
 
                 const alignStyle = isMe ? "justify-content:flex-end;" : "justify-content:flex-start;";
 
-                // Sadece kendi mesajına silme butonu koy
                 const deleteBtn = isMe ? `<span onclick="deleteDMMessage('${chatID}', '${msgKey}')" style="cursor:pointer; font-size:0.7rem; margin-left:5px; opacity:0.6;">🗑️</span>` : '';
 
                 const html = `
                 <div style="display:flex; ${alignStyle} margin-bottom:5px; align-items:center;">
-                    <div style="${bubbleStyle} padding:8px 12px; max-width:80%; font-size:0.9rem; box-shadow:0 1px 2px rgba(0,0,0,0.1); display:flex; align-items:center;">
-                        <span>${m.text}</span>
-                        ${deleteBtn}
+                    <div style="${bubbleStyle} padding:8px 12px; max-width:80%; font-size:0.9rem; box-shadow:0 1px 2px rgba(0,0,0,0.1); display:flex; align-items:flex-end; flex-wrap:wrap;">
+                        <span style="margin-right:5px;">${m.text}</span>
+                        <div style="display:flex; align-items:center; margin-left:auto;">
+                            <span style="font-size:0.65rem; color:rgba(0,0,0,0.4); margin-top:2px;">${new Date(m.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            ${statusIcon}
+                            ${deleteBtn}
+                        </div>
                     </div>
                 </div>`;
                 msgBox.innerHTML += html;
