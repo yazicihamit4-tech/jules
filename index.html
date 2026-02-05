@@ -4322,6 +4322,19 @@ text-align: center;
         </div>
     </div>
 
+    <div id="screen-word-lobby" class="screen">
+        <div class="card"><button class="btn-red"
+                style="width:auto;padding:5px 15px;font-size:0.9rem;z-index:9999;position:relative;"
+                ontouchstart="attemptExit()" onclick="attemptExit()">ÇIKIŞ</button><br>
+            <h2>Kelime Düellosu Bekleniyor...</h2>
+            <div id="wordRoomCodeDisplay"
+                style="font-size:3rem;background:rgba(255,255,255,0.2);padding:10px;letter-spacing:5px;"></div>
+            <p id="wordRoomModeInfo"></p>
+            <h4>Davet Et</h4>
+            <div id="wordInviteListWait" class="list-container"></div>
+        </div>
+    </div>
+
     <div id="screen-game" class="screen">
         <div class="card"
             style="display:flex;justify-content:space-between;background:rgba(0,0,0,0.8);color:white;padding:10px;">
@@ -5970,10 +5983,12 @@ const THEMES = [
         presenceRef.on('value', s => {
             const list = document.getElementById('activePlayersList');
             const inviteList = document.getElementById('inviteListWait');
-            if (!list || !inviteList) return;
+            const wordInviteList = document.getElementById('wordInviteListWait');
 
-            list.innerHTML = "";
-            inviteList.innerHTML = "";
+            if (list) list.innerHTML = "";
+            if (inviteList) inviteList.innerHTML = "";
+            if (wordInviteList) wordInviteList.innerHTML = "";
+
             let hasData = false;
 
             s.forEach(c => {
@@ -5991,15 +6006,32 @@ const THEMES = [
                         <button class="btn-green" style="width:auto;padding:5px;" onclick="inviteUser('${c.key}')">DAVET</button>
                     </div>
                 </div>`;
-                    list.innerHTML += itemHTML;
-                    inviteList.innerHTML += itemHTML;
+
+                    if (list) list.innerHTML += itemHTML;
+                    if (inviteList) inviteList.innerHTML += itemHTML;
+
+                    if (wordInviteList) {
+                         const wordItemHTML = `
+                        <div class="list-item">
+                            <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
+                                🟢 ${c.key}
+                            </span>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-gold" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openUserProfile('${c.key}')">👤</button>
+                                <button class="btn-blue" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openDM('${c.key}')">💬</button>
+                                <button class="btn-green" style="width:auto;padding:5px;" onclick="inviteUserToWordRoom('${c.key}')">DAVET</button>
+                            </div>
+                        </div>`;
+                        wordInviteList.innerHTML += wordItemHTML;
+                    }
                 }
             });
 
             if (!hasData) {
                 const noData = "<small>Kimse yok.</small>";
-                list.innerHTML = noData;
-                inviteList.innerHTML = noData;
+                if (list) list.innerHTML = noData;
+                if (inviteList) inviteList.innerHTML = noData;
+                if (wordInviteList) wordInviteList.innerHTML = noData;
             }
         });
 
@@ -9890,6 +9922,26 @@ function restartWordGame() {
         });
     }
 
+    function inviteUserToWordRoom(targetName) {
+        if (!user.name) return showToast("Önce giriş yapmalısın.");
+        if (targetName === user.name) return showToast("Kendini davet edemezsin.");
+
+        if (game.room && (game.mode === 'online_word')) {
+             if (game.role !== 'p1') {
+                return showToast("Misafir oyuncular davet gönderemez!");
+             }
+             db.ref('invites/' + targetName).push({
+                from: user.name,
+                room: game.room,
+                type: 'word',
+                timestamp: Date.now()
+             });
+             showToast("Kelime Daveti gönderildi!");
+        } else {
+            showToast("Önce bir oda kurmalısın!");
+        }
+    }
+
     function sendWordInvite(targetUser) {
         if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
 
@@ -9937,8 +9989,8 @@ function restartWordGame() {
         // Enter Lobby Wait
         // Use existing lobby or custom?
         // We can reuse `listenWordRoom`.
-        document.getElementById('roomCodeDisplay').innerText = c;
-        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        document.getElementById('wordRoomCodeDisplay').innerText = c;
+        document.getElementById('wordRoomModeInfo').innerText = `Kelime (${diff})`;
         changeScreen('screen-word-lobby');
         listenWordRoom(c);
     }
@@ -10034,8 +10086,8 @@ function restartWordGame() {
         game.mode = "online_word";
 
         closeModal('modal-word-setup');
-        document.getElementById('roomCodeDisplay').innerText = c;
-        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        document.getElementById('wordRoomCodeDisplay').innerText = c;
+        document.getElementById('wordRoomModeInfo').innerText = `Kelime (${diff})`;
         changeScreen('screen-word-lobby');
         listenWordRoom(c);
     }
