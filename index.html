@@ -11,10 +11,462 @@
     <meta name="screen-orientation" content="portrait">
     <link rel="manifest"
         href='data:application/manifest+json,{"display":"standalone","orientation":"portrait","theme_color":"#f0f2f5","background_color":"#f0f2f5","name":"TahminSon","short_name":"TahminSon"}'>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+
+    // --- NEW WORD GAME LOGIC ---
+
+    function toggleWordMode(context, type) {
+        if (context === 'single') {
+            const timeOpts = document.getElementById('singleTimeOptions');
+            const moveOpts = document.getElementById('singleMoveOptions');
+            if (type === 'time') {
+                timeOpts.style.display = 'block';
+                moveOpts.style.display = 'none';
+            } else {
+                timeOpts.style.display = 'none';
+                moveOpts.style.display = 'block';
+            }
+        }
+        // Online toggles are just radios, no UI change needed unless we want to show details.
+        // But for clarity, we can add labels or just rely on the radio text.
+    }
+
+    function renderWordActivePlayers() {
+        const list = document.getElementById('wordActivePlayersList');
+        if (!list) return;
+
+        // Use existing adminData.presence or fetch from DB
+        // We can reuse the logic from `updateActivePlayersList` but filtered
+        // Or just fetch `presence` again.
+
+        db.ref('presence').once('value').then(snapshot => {
+            const data = snapshot.val() || {};
+            list.innerHTML = "";
+            let count = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key === user.name) return; // Don't list self
+                const p = data[key];
+                if (Date.now() - p.lastSeen > 120000) return; // Offline
+
+                count++;
+                const item = document.createElement('div');
+                item.className = "list-item";
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span>${p.avatar || '👤'}</span>
+                        <span style="font-weight:bold; font-size:0.8rem;">${key}</span>
+                    </div>
+                    <button class="btn-green" style="padding:2px 8px; font-size:0.7rem;" onclick="sendWordInvite('${key}')">DAVET</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (count === 0) {
+                list.innerHTML = `<div style="padding:10px; text-align:center; color:#999; font-size:0.8rem;">Kimse yok.</div>`;
+            }
+        });
+    }
+
+    function sendWordInvite(targetUser) {
+        if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
+
+        // Read config from UI
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // Fixed 5 mins for online time mode per UI? Or add dropdown? UI says "5dk"
+        const maxGuesses = isTime ? 1000 : 15; // 15 moves if 'moves' mode
+
+        // Create Room First
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+
+        // Deduct Gold? Or only on join?
+        // createWordRoom deducts. Here we are inviting, which implies creating.
+        updateGold(-50);
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word"; // Custom tag
+
+        // Send Invite
+        db.ref('invites/' + targetUser).push({
+            from: user.name,
+            room: c,
+            type: 'word', // TAG IT
+            timestamp: Date.now()
+        });
+
+        closeModal('modal-word-setup');
+        showToast(`📨 ${targetUser} davet edildi!`);
+
+        // Enter Lobby Wait
+        // Use existing lobby or custom?
+        // We can reuse `listenWordRoom`.
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
+</script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+
+    // --- NEW WORD GAME LOGIC ---
+
+    function toggleWordMode(context, type) {
+        if (context === 'single') {
+            const timeOpts = document.getElementById('singleTimeOptions');
+            const moveOpts = document.getElementById('singleMoveOptions');
+            if (type === 'time') {
+                timeOpts.style.display = 'block';
+                moveOpts.style.display = 'none';
+            } else {
+                timeOpts.style.display = 'none';
+                moveOpts.style.display = 'block';
+            }
+        }
+        // Online toggles are just radios, no UI change needed unless we want to show details.
+        // But for clarity, we can add labels or just rely on the radio text.
+    }
+
+    function renderWordActivePlayers() {
+        const list = document.getElementById('wordActivePlayersList');
+        if (!list) return;
+
+        // Use existing adminData.presence or fetch from DB
+        // We can reuse the logic from `updateActivePlayersList` but filtered
+        // Or just fetch `presence` again.
+
+        db.ref('presence').once('value').then(snapshot => {
+            const data = snapshot.val() || {};
+            list.innerHTML = "";
+            let count = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key === user.name) return; // Don't list self
+                const p = data[key];
+                if (Date.now() - p.lastSeen > 120000) return; // Offline
+
+                count++;
+                const item = document.createElement('div');
+                item.className = "list-item";
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span>${p.avatar || '👤'}</span>
+                        <span style="font-weight:bold; font-size:0.8rem;">${key}</span>
+                    </div>
+                    <button class="btn-green" style="padding:2px 8px; font-size:0.7rem;" onclick="sendWordInvite('${key}')">DAVET</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (count === 0) {
+                list.innerHTML = `<div style="padding:10px; text-align:center; color:#999; font-size:0.8rem;">Kimse yok.</div>`;
+            }
+        });
+    }
+
+    function sendWordInvite(targetUser) {
+        if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
+
+        // Read config from UI
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // Fixed 5 mins for online time mode per UI? Or add dropdown? UI says "5dk"
+        const maxGuesses = isTime ? 1000 : 15; // 15 moves if 'moves' mode
+
+        // Create Room First
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+
+        // Deduct Gold? Or only on join?
+        // createWordRoom deducts. Here we are inviting, which implies creating.
+        updateGold(-50);
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word"; // Custom tag
+
+        // Send Invite
+        db.ref('invites/' + targetUser).push({
+            from: user.name,
+            room: c,
+            type: 'word', // TAG IT
+            timestamp: Date.now()
+        });
+
+        closeModal('modal-word-setup');
+        showToast(`📨 ${targetUser} davet edildi!`);
+
+        // Enter Lobby Wait
+        // Use existing lobby or custom?
+        // We can reuse `listenWordRoom`.
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
+</script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
+
+    // --- NEW WORD GAME LOGIC ---
+
+    function toggleWordMode(context, type) {
+        if (context === 'single') {
+            const timeOpts = document.getElementById('singleTimeOptions');
+            const moveOpts = document.getElementById('singleMoveOptions');
+            if (type === 'time') {
+                timeOpts.style.display = 'block';
+                moveOpts.style.display = 'none';
+            } else {
+                timeOpts.style.display = 'none';
+                moveOpts.style.display = 'block';
+            }
+        }
+        // Online toggles are just radios, no UI change needed unless we want to show details.
+        // But for clarity, we can add labels or just rely on the radio text.
+    }
+
+    function renderWordActivePlayers() {
+        const list = document.getElementById('wordActivePlayersList');
+        if (!list) return;
+
+        // Use existing adminData.presence or fetch from DB
+        // We can reuse the logic from `updateActivePlayersList` but filtered
+        // Or just fetch `presence` again.
+
+        db.ref('presence').once('value').then(snapshot => {
+            const data = snapshot.val() || {};
+            list.innerHTML = "";
+            let count = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key === user.name) return; // Don't list self
+                const p = data[key];
+                if (Date.now() - p.lastSeen > 120000) return; // Offline
+
+                count++;
+                const item = document.createElement('div');
+                item.className = "list-item";
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span>${p.avatar || '👤'}</span>
+                        <span style="font-weight:bold; font-size:0.8rem;">${key}</span>
+                    </div>
+                    <button class="btn-green" style="padding:2px 8px; font-size:0.7rem;" onclick="sendWordInvite('${key}')">DAVET</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (count === 0) {
+                list.innerHTML = `<div style="padding:10px; text-align:center; color:#999; font-size:0.8rem;">Kimse yok.</div>`;
+            }
+        });
+    }
+
+    function sendWordInvite(targetUser) {
+        if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
+
+        // Read config from UI
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // Fixed 5 mins for online time mode per UI? Or add dropdown? UI says "5dk"
+        const maxGuesses = isTime ? 1000 : 15; // 15 moves if 'moves' mode
+
+        // Create Room First
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+
+        // Deduct Gold? Or only on join?
+        // createWordRoom deducts. Here we are inviting, which implies creating.
+        updateGold(-50);
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word"; // Custom tag
+
+        // Send Invite
+        db.ref('invites/' + targetUser).push({
+            from: user.name,
+            room: c,
+            type: 'word', // TAG IT
+            timestamp: Date.now()
+        });
+
+        closeModal('modal-word-setup');
+        showToast(`📨 ${targetUser} davet edildi!`);
+
+        // Enter Lobby Wait
+        // Use existing lobby or custom?
+        // We can reuse `listenWordRoom`.
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
+</script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js">
+
+    // --- NEW WORD GAME LOGIC ---
+
+    function toggleWordMode(context, type) {
+        if (context === 'single') {
+            const timeOpts = document.getElementById('singleTimeOptions');
+            const moveOpts = document.getElementById('singleMoveOptions');
+            if (type === 'time') {
+                timeOpts.style.display = 'block';
+                moveOpts.style.display = 'none';
+            } else {
+                timeOpts.style.display = 'none';
+                moveOpts.style.display = 'block';
+            }
+        }
+        // Online toggles are just radios, no UI change needed unless we want to show details.
+        // But for clarity, we can add labels or just rely on the radio text.
+    }
+
+    function renderWordActivePlayers() {
+        const list = document.getElementById('wordActivePlayersList');
+        if (!list) return;
+
+        // Use existing adminData.presence or fetch from DB
+        // We can reuse the logic from `updateActivePlayersList` but filtered
+        // Or just fetch `presence` again.
+
+        db.ref('presence').once('value').then(snapshot => {
+            const data = snapshot.val() || {};
+            list.innerHTML = "";
+            let count = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key === user.name) return; // Don't list self
+                const p = data[key];
+                if (Date.now() - p.lastSeen > 120000) return; // Offline
+
+                count++;
+                const item = document.createElement('div');
+                item.className = "list-item";
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span>${p.avatar || '👤'}</span>
+                        <span style="font-weight:bold; font-size:0.8rem;">${key}</span>
+                    </div>
+                    <button class="btn-green" style="padding:2px 8px; font-size:0.7rem;" onclick="sendWordInvite('${key}')">DAVET</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (count === 0) {
+                list.innerHTML = `<div style="padding:10px; text-align:center; color:#999; font-size:0.8rem;">Kimse yok.</div>`;
+            }
+        });
+    }
+
+    function sendWordInvite(targetUser) {
+        if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
+
+        // Read config from UI
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // Fixed 5 mins for online time mode per UI? Or add dropdown? UI says "5dk"
+        const maxGuesses = isTime ? 1000 : 15; // 15 moves if 'moves' mode
+
+        // Create Room First
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+
+        // Deduct Gold? Or only on join?
+        // createWordRoom deducts. Here we are inviting, which implies creating.
+        updateGold(-50);
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word"; // Custom tag
+
+        // Send Invite
+        db.ref('invites/' + targetUser).push({
+            from: user.name,
+            room: c,
+            type: 'word', // TAG IT
+            timestamp: Date.now()
+        });
+
+        closeModal('modal-word-setup');
+        showToast(`📨 ${targetUser} davet edildi!`);
+
+        // Enter Lobby Wait
+        // Use existing lobby or custom?
+        // We can reuse `listenWordRoom`.
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
+</script>
     <style>
         :root {
             --bg: #f0f2f5;
@@ -3750,133 +4202,6 @@ text-align: center;
 
             <div style="padding: 15px; background: #f4f6f8; overflow-y: auto; flex: 1;">
 
-                <div
-                    style="background: white; border-radius: 16px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #eee; margin-bottom: 15px; position: relative; overflow: hidden;">
-                    <div style="position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #2ecc71;">
-                    </div>
-                    <div
-                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-left: 8px;">
-                        <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">👤 TEK KİŞİLİK</span>
-                        <span
-                            style="background: #e8f8f5; color: #27ae60; font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; font-weight: bold;">ANTRENMAN</span>
-                    </div>
-
-                    <div style="display: flex; gap: 6px;">
-                        <div style="flex: 1;">
-                            <select id="singleDiffSelect"
-                                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-size: 0.8rem; font-weight: 600; color: #2d3436; outline: none;"></select>
-                        </div>
-                        <div style="flex: 1;">
-                            <select id="singleMode" onchange="toggleTimeSelect('single')"
-                                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-size: 0.8rem; font-weight: 600; color: #2d3436; outline: none;">
-                                <option value="classic">🎯 Klasik</option>
-                                <option value="timed">⏱️ Süreli</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- PvC Options -->
-                    <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between;">
-                            <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
-                            <input type="checkbox" id="checkVsCpu" onchange="document.getElementById('pvcSecretDiv').style.display = this.checked ? 'block' : 'none'" style="width: 20px; height: 20px;">
-                        </div>
-                        <div id="pvcSecretDiv" style="display: none; margin-top: 5px;">
-                            <input type="tel" id="playerSecretInput" placeholder="Senin Sayın (Opsiyonel)" maxlength="7" style="font-size: 0.9rem; padding: 8px; text-align: center; letter-spacing: 2px;">
-                            <small style="display:block; color:#999; font-size:0.65rem;">Boş bırakırsan sistem rastgele atar.</small>
-                        </div>
-                    </div>
-
-
-                    <select id="singleDuration"
-                        style="display:none; width: 100%; margin-top: 6px; padding: 8px; border-radius: 8px; border: 1px solid #fab1a0; background: #fff5f5; font-weight: bold; color: #d63031;">
-                        <option value="1">⚡ 1 Dakika</option>
-                        <option value="3">⏱️ 3 Dakika</option>
-                        <option value="5">🐢 5 Dakika</option>
-                    </select>
-
-                    <button onclick="startSingle()" class="btn-green"
-                        style="margin-top: 10px; width: 100%; border-radius: 8px; padding: 10px; font-size: 0.85rem; letter-spacing: 0.5px; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);">
-                        BAŞLA
-                    </button>
-                </div>
-
-                <div style="text-align: center; margin: -25px 0 8px 0; position: relative; z-index: 2;">
-                    <span
-                        style="background: #fff; border: 2px solid #eee; padding: 3px 8px; border-radius: 20px; font-size: 0.65rem; color: #999; font-weight: bold;">VEYA</span>
-                </div>
-
-                <div
-                    style="background: white; border-radius: 16px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #eee; position: relative; overflow: hidden;">
-                    <div style="position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #3498db;">
-                    </div>
-                    <div
-                        style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-left: 8px;">
-                        <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">🌍 ONLINE PvP</span>
-                        <span
-                            style="background: #eaf2f8; color: #2980b9; font-size: 0.6rem; padding: 2px 6px; border-radius: 6px; font-weight: bold;">REKABET</span>
-                    </div>
-
-                    <div
-                        style="background: #f8fbff; border-radius: 10px; padding: 8px; margin-bottom: 8px; border: 1px dashed #aed6f1;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
-                            <select id="createDiff"
-                                style="padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; font-weight:600;"></select>
-                            <select id="createMode" onchange="toggleTimeSelect('online')"
-                                style="padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; font-weight:600;">
-                                <option value="classic">🎯 Klasik</option>
-                                <option value="timed">⏱️ Süreli</option>
-                            </select>
-                        </div>
-                        <select id="createPlayStyle"
-                            style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; margin-bottom: 5px; font-weight:600;">
-                            <option value="turn">🔄 Sıralı Mod (Sakin)</option>
-                            <option value="simul">⚡ Serbest Mod (Kaos)</option>
-                        </select>
-                        <div id="timeSelectDiv" style="display:none; margin-top:5px;">
-                            <select id="createDuration"
-                                style="width:100%; padding:6px; border-radius:6px; font-weight:bold; color:#e74c3c;">
-                                <option value="3">3 Dk</option>
-                                <option value="5">5 Dk</option>
-                                <option value="8">8 Dk</option>
-                                <option value="10">10 Dk</option>
-                            </select>
-                        </div>
-                        <button onclick="createRoom()" class="btn-blue"
-                            style="width: 100%; padding: 8px; margin-top: 5px; font-size: 0.8rem; border-radius: 6px;">🏠
-                            ODA KUR (50💰)</button>
-                    </div>
-
-                    <div
-                        style="display: flex; gap: 5px; align-items: center; background: #fff; border-top: 2px solid #f1f2f6; padding-top: 8px;">
-                        <input type="tel" id="joinCode" placeholder="Oda Kodu"
-                            style="flex: 1; padding: 8px; border-radius: 6px; border: 2px solid #eee; text-align: center; font-size: 0.9rem; letter-spacing: 2px; font-weight: bold; color: #2d3436; margin:0;">
-                        <button onclick="joinRoom(document.getElementById('joinCode').value)" class="btn-purple"
-                            style="width: auto; padding: 8px 12px; border-radius: 6px; margin:0; box-shadow: none; font-size: 0.8rem;">GİR</button>
-                    </div>
-                </div>
-
-            </div>
-
-            <div
-                style="padding: 10px; background: #fff; text-align: center; border-top: 1px solid #eee; flex-shrink: 0;">
-                <button onclick="closeModal('modal-setup')"
-                    style="background: transparent; color: #b2bec3; font-weight: bold; border: none; font-size: 0.85rem; padding: 5px; width: 100%; cursor: pointer; box-shadow: none;">
-                    VAZGEÇ
-                </button>
-            </div>
-        </div>
-    </div>
-    <!-- WORD GAME SETUP MODAL -->
-    <div id="modal-word-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
-        <div class="modal-box" style="padding: 0; max-width: 420px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 85vh;">
-
-            <div style="background: linear-gradient(135deg, #8e44ad, #9b59b6); padding: 15px; color: white; text-align: center; position: relative; flex-shrink: 0;">
-                <h3 style="margin:0; font-size: 1.3rem; letter-spacing: 1px;">KELİME MODU</h3>
-                <div style="font-size: 0.75rem; opacity: 0.8; margin-top: 3px;">Mücadele türünü seç</div>
-            </div>
-
-            <div style="padding: 15px; background: #f4f6f8; overflow-y: auto; flex: 1;">
-
                 <!-- SINGLE PLAYER & PvC -->
                 <div style="background: white; border-radius: 16px; padding: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border: 1px solid #eee; margin-bottom: 15px; position: relative; overflow: hidden;">
                     <div style="position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: #9b59b6;"></div>
@@ -3884,9 +4209,9 @@ text-align: center;
                         <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">👤 TEK KİŞİLİK / PvC</span>
                     </div>
 
-                    <div style="display: flex; gap: 6px; margin-bottom:10px;">
-                        <select id="wordDiffSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
-
+                    <div style="margin-bottom:10px;">
+                        <label style="font-size:0.75rem; font-weight:bold; color:#666;">Kelime Uzunluğu:</label>
+                        <select id="wordDiffSelect" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
                             <option value="3">3 Harfli</option>
                             <option value="4">4 Harfli</option>
                             <option value="5" selected>5 Harfli</option>
@@ -3894,23 +4219,35 @@ text-align: center;
                             <option value="7">7 Harfli</option>
                             <option value="8">8 Harfli</option>
                             <option value="9">9 Harfli</option>
-                            <option value="10">10 Harfli</option></select>
-                    </div>
-                    <div style="display: flex; gap: 6px; margin-bottom:10px;">
-                        <select id="wordTimeSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
-                            <option value="0">Süresiz</option>
-                            <option value="3">3 Dakika</option>
-                            <option value="5">5 Dakika</option>
-                            <option value="7">7 Dakika</option>
-                        </select>
-                        <select id="wordMoveSelect" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
-                            <option value="6">6 Hamle</option>
-                            <option value="10">10 Hamle</option>
-                            <option value="15">15 Hamle</option>
+                            <option value="10">10 Harfli</option>
                         </select>
                     </div>
 
-                    <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+                    <!-- Mode Selection -->
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <label style="flex:1; display:flex; align-items:center; gap:5px; padding:5px; border:1px solid #eee; border-radius:8px; cursor:pointer;" onclick="toggleWordMode('single', 'time')">
+                            <input type="radio" name="wordSingleMode" id="radioSingleTime" checked>
+                            <span style="font-size:0.8rem; font-weight:bold;">⏱️ Süreli</span>
+                        </label>
+                        <label style="flex:1; display:flex; align-items:center; gap:5px; padding:5px; border:1px solid #eee; border-radius:8px; cursor:pointer;" onclick="toggleWordMode('single', 'moves')">
+                            <input type="radio" name="wordSingleMode" id="radioSingleMoves">
+                            <span style="font-size:0.8rem; font-weight:bold;">⚡ Haklı</span>
+                        </label>
+                    </div>
+
+                    <!-- Options -->
+                    <div id="singleTimeOptions">
+                        <select id="wordTimeSelect" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="3">3 Dakika</option>
+                            <option value="5" selected>5 Dakika</option>
+                            <option value="7">7 Dakika</option>
+                        </select>
+                    </div>
+                    <div id="singleMoveOptions" style="display:none; text-align:center; padding:10px; background:#f0f2f5; border-radius:8px; color:#2d3436; font-weight:bold; border:1px dashed #ccc;">
+                        15 HAK (Standart)
+                    </div>
+
+                    <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
                             <input type="checkbox" id="checkWordVsCpu" style="width: 20px; height: 20px;">
@@ -3933,23 +4270,45 @@ text-align: center;
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
                         <select id="createWordDiff" style="padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; font-weight:600;">
+                            <option value="3">3 Harf</option>
                             <option value="4">4 Harf</option>
                             <option value="5" selected>5 Harf</option>
                             <option value="6">6 Harf</option>
+                            <option value="7">7 Harf</option>
+                            <option value="8">8 Harf</option>
+                            <option value="9">9 Harf</option>
+                            <option value="10">10 Harf</option>
                         </select>
                         <button onclick="createWordRoom()" class="btn-blue" style="margin:0; padding: 5px; font-size: 0.7rem;">ODA KUR (50💰)</button>
+                    </div>
+
+                     <!-- Online Mode Selection -->
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <label style="flex:1; display:flex; align-items:center; gap:5px; padding:5px; border:1px solid #eee; border-radius:8px; cursor:pointer;" onclick="toggleWordMode('online', 'time')">
+                            <input type="radio" name="wordOnlineMode" id="radioOnlineTime" checked>
+                            <span style="font-size:0.7rem; font-weight:bold;">⏱️ Süreli (5dk)</span>
+                        </label>
+                        <label style="flex:1; display:flex; align-items:center; gap:5px; padding:5px; border:1px solid #eee; border-radius:8px; cursor:pointer;" onclick="toggleWordMode('online', 'moves')">
+                            <input type="radio" name="wordOnlineMode" id="radioOnlineMoves">
+                            <span style="font-size:0.7rem; font-weight:bold;">⚡ Haklı (15)</span>
+                        </label>
                     </div>
 
                     <div style="display: flex; gap: 5px; align-items: center; background: #fff; border-top: 2px solid #f1f2f6; padding-top: 8px;">
                         <input type="tel" id="joinWordCode" placeholder="Oda Kodu" style="flex: 1; padding: 8px; border-radius: 6px; border: 2px solid #eee; text-align: center; font-size: 0.9rem; margin:0;">
                         <button onclick="joinWordRoom(document.getElementById('joinWordCode').value)" class="btn-purple" style="width: auto; padding: 8px 12px; border-radius: 6px; margin:0;">GİR</button>
                     </div>
+
+                    <!-- Online Player List -->
+                    <div style="margin-top:10px; border-top:1px dashed #ddd; padding-top:10px;">
+                        <div style="font-size:0.75rem; font-weight:bold; color:#555; margin-bottom:5px;">🟢 Aktif Oyuncular (Kelime Daveti)</div>
+                        <div id="wordActivePlayersList" class="list-container" style="height:120px; background:#fafafa;">
+                           <div style="padding:10px; text-align:center; color:#999;">Yükleniyor...</div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- CAREER -->
-
-
-            </div>
+</div>
 
             <div style="padding: 10px; background: #fff; text-align: center; border-top: 1px solid #eee; flex-shrink: 0;">
                 <button onclick="closeModal('modal-word-setup')" style="background: transparent; color: #b2bec3; font-weight: bold; border: none; font-size: 0.85rem; padding: 5px; width: 100%; cursor: pointer;">VAZGEÇ</button>
@@ -9838,9 +10197,400 @@ function restartWordGame() {
             AdManager.showInterstitialAd();
         }
     }
+
+
+    // --- NEW WORD GAME LOGIC ---
+
+    function toggleWordMode(context, type) {
+        if (context === 'single') {
+            const timeOpts = document.getElementById('singleTimeOptions');
+            const moveOpts = document.getElementById('singleMoveOptions');
+            if (type === 'time') {
+                timeOpts.style.display = 'block';
+                moveOpts.style.display = 'none';
+            } else {
+                timeOpts.style.display = 'none';
+                moveOpts.style.display = 'block';
+            }
+        }
+        // Online toggles are just radios, no UI change needed unless we want to show details.
+        // But for clarity, we can add labels or just rely on the radio text.
+    }
+
+    function renderWordActivePlayers() {
+        const list = document.getElementById('wordActivePlayersList');
+        if (!list) return;
+
+        // Use existing adminData.presence or fetch from DB
+        // We can reuse the logic from `updateActivePlayersList` but filtered
+        // Or just fetch `presence` again.
+
+        db.ref('presence').once('value').then(snapshot => {
+            const data = snapshot.val() || {};
+            list.innerHTML = "";
+            let count = 0;
+
+            Object.keys(data).forEach(key => {
+                if (key === user.name) return; // Don't list self
+                const p = data[key];
+                if (Date.now() - p.lastSeen > 120000) return; // Offline
+
+                count++;
+                const item = document.createElement('div');
+                item.className = "list-item";
+                item.style.display = "flex";
+                item.style.justifyContent = "space-between";
+                item.style.alignItems = "center";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span>${p.avatar || '👤'}</span>
+                        <span style="font-weight:bold; font-size:0.8rem;">${key}</span>
+                    </div>
+                    <button class="btn-green" style="padding:2px 8px; font-size:0.7rem;" onclick="sendWordInvite('${key}')">DAVET</button>
+                `;
+                list.appendChild(item);
+            });
+
+            if (count === 0) {
+                list.innerHTML = `<div style="padding:10px; text-align:center; color:#999; font-size:0.8rem;">Kimse yok.</div>`;
+            }
+        });
+    }
+
+    function sendWordInvite(targetUser) {
+        if (user.gold < 50) return showToast("50 Altın Gerek (Oda Kurmak İçin)");
+
+        // Read config from UI
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // Fixed 5 mins for online time mode per UI? Or add dropdown? UI says "5dk"
+        const maxGuesses = isTime ? 1000 : 15; // 15 moves if 'moves' mode
+
+        // Create Room First
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+
+        // Deduct Gold? Or only on join?
+        // createWordRoom deducts. Here we are inviting, which implies creating.
+        updateGold(-50);
+
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word"; // Custom tag
+
+        // Send Invite
+        db.ref('invites/' + targetUser).push({
+            from: user.name,
+            room: c,
+            type: 'word', // TAG IT
+            timestamp: Date.now()
+        });
+
+        closeModal('modal-word-setup');
+        showToast(`📨 ${targetUser} davet edildi!`);
+
+        // Enter Lobby Wait
+        // Use existing lobby or custom?
+        // We can reuse `listenWordRoom`.
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
 </script>
 
     <canvas id="confettiCanvas" aria-hidden="true"></canvas>
 </body>
 
 </html>
+    function startWordGameCustom() {
+        const diff = parseInt(document.getElementById('wordDiffSelect').value);
+        const isPvC = document.getElementById('checkWordVsCpu').checked;
+
+        // Determine Mode (Time vs Moves)
+        const isTimeMode = document.getElementById('radioSingleTime').checked;
+
+        let timeLimit = 0;
+        let moveLimit = 15; // Standard for Moves mode
+
+        if (isTimeMode) {
+            timeLimit = parseInt(document.getElementById('wordTimeSelect').value);
+            moveLimit = 1000; // Effectively infinite for timed mode
+        } else {
+            timeLimit = 0;
+            moveLimit = 15; // Fixed 15 hak
+        }
+
+        // Correct Mapping: Length 3 -> Level 1
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+
+        if (!data) return showToast("Veri yok!");
+
+        const pool = data.words;
+        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        wordGameState = {
+            active: true,
+            mode: isPvC ? 'pvc' : 'single',
+            secret: secret,
+            length: diff,
+            guesses: [],
+            maxGuesses: moveLimit,
+            currentGuess: "",
+            level: lvl,
+            startTime: Date.now(),
+            timeLimit: timeLimit
+        };
+
+        if(isPvC) wordGameState.aiGuesses = [];
+
+        closeModal('modal-word-setup');
+        changeScreen('screen-word-game');
+        renderWordBoard();
+        updateWordKeyboard();
+
+        if (timeLimit > 0) {
+            startWordTimer(timeLimit);
+        } else {
+            stopWordTimer();
+            document.getElementById('wordTimerDisplay').style.display = 'none';
+        }
+
+        const modeText = isPvC ? '🆚 Bilgisayar' : 'Tek Kişilik';
+        const limitText = timeLimit > 0 ? `${timeLimit} Dk` : `${moveLimit} Hak`;
+        document.getElementById('wordLevelDisplay').innerText = `${diff} Harf - ${limitText} - ${modeText}`;
+    }
+
+    function createWordRoom() {
+        if (user.gold < 50) return showToast("50 Altın Gerek");
+
+        const diff = parseInt(document.getElementById('createWordDiff').value);
+
+        // Mode logic
+        const isTime = document.getElementById('radioOnlineTime').checked;
+        const timeLimit = isTime ? 5 : 0; // 5 min default for online time
+        const maxGuesses = isTime ? 1000 : 15;
+
+        updateGold(-50);
+
+        const c = Math.floor(10000 + Math.random() * 90000).toString();
+        const lvl = diff - 2;
+        const data = WORD_DATA[lvl] || WORD_DATA[1];
+        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        db.ref('rooms/' + c).set({
+            type: 'word',
+            secret: secret,
+            p1: { name: user.name, avatar: user.avatar },
+            config: { length: diff, timeLimit: timeLimit, maxGuesses: maxGuesses },
+            status: "waiting",
+            startTime: Date.now()
+        });
+
+        db.ref('rooms/' + c).onDisconnect().remove();
+        game.room = c;
+        game.role = "p1";
+        game.mode = "online_word";
+
+        closeModal('modal-word-setup');
+        document.getElementById('roomCodeDisplay').innerText = c;
+        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
+        changeScreen('screen-word-lobby');
+        listenWordRoom(c);
+    }
+
+    function joinWordRoom(c) {
+        c = c.toString().trim();
+        db.ref('rooms/' + c).once('value').then(s => {
+            const r = s.val();
+            if (!r || r.type !== 'word') return showToast("Oda Yok/Hatalı");
+            if (r.status !== "waiting") return showToast("Dolu");
+
+            updateGold(-50);
+            game.room = c;
+            game.role = "p2";
+            game.mode = "online_word";
+
+            db.ref('rooms/' + c).update({
+                p2: { name: user.name, avatar: user.avatar },
+                status: "playing",
+                startTime: Date.now()
+            });
+
+            closeModal('modal-word-setup');
+            listenWordRoom(c);
+        });
+    }
+
+    function listenWordRoom(c) {
+        db.ref('rooms/' + c).on('value', s => {
+            const r = s.val();
+            if (!r) return;
+
+            if (r.status === 'playing' && currentScreen !== 'screen-word-game') {
+                // Apply Config
+                const conf = r.config || { length: 5, timeLimit: 0, maxGuesses: 6 };
+
+                wordGameState = {
+                    active: true,
+                    mode: 'online',
+                    secret: r.secret,
+                    length: conf.length,
+                    guesses: [],
+                    maxGuesses: conf.maxGuesses || 15,
+                    currentGuess: "",
+                    level: 1,
+                    startTime: r.startTime,
+                    timeLimit: conf.timeLimit || 0
+                };
+
+                changeScreen('screen-word-game');
+                renderWordBoard();
+                updateWordKeyboard();
+
+                if (wordGameState.timeLimit > 0) {
+                    startWordTimer(wordGameState.timeLimit);
+                } else {
+                    stopWordTimer();
+                    document.getElementById('wordTimerDisplay').style.display = 'none';
+                }
+
+                const limitText = wordGameState.timeLimit > 0 ? `${wordGameState.timeLimit} Dk` : `${wordGameState.maxGuesses} Hak`;
+                document.getElementById('wordLevelDisplay').innerText = `ONLINE - ${wordGameState.length} Harf - ${limitText}`;
+
+                // Listen for opponent moves
+                db.ref('rooms/' + c + '/word_moves').off();
+                db.ref('rooms/' + c + '/word_moves').on('child_added', s => {
+                   // Logic for moves display... (Simplified)
+                });
+            }
+
+            // Winner Logic
+            if (r.winner) {
+               if(wordGameState.active) {
+                   wordGameState.active = false;
+                   if (r.winner === user.name) {
+                       AudioEngine.win();
+                       alert("KAZANDIN! 🎉");
+                   } else {
+                       AudioEngine.error();
+                       alert("KAYBETTİN! 😞
+Kelime: " + wordGameState.secret);
+                   }
+                   changeScreen('screen-lobby');
+                   checkWordGameAd();
+               }
+            }
+
+            // Wait Logic (P2 Joined)
+            if (r.status === 'playing' && currentScreen === 'screen-word-lobby') {
+                // Logic handled above (changeScreen)
+            }
+        });
+    }
+
+    function safeOpenWordSetup() {
+        showModal('modal-word-setup');
+        renderWordActivePlayers(); // Populate list
+    }
+
+    function listenForInvites() {
+        if (!user.name) return;
+        const inviteRef = db.ref('invites/' + user.name);
+        inviteRef.off();
+
+        inviteRef.on('child_added', snapshot => {
+            const invite = snapshot.val();
+            const key = snapshot.key;
+            db.ref('invites/' + user.name + '/' + key).remove();
+
+            if (Date.now() - invite.timestamp > 120000) return;
+            if (game.active || wordGameState.active) {
+                showToast(`📨 ${invite.from} seni davet etti (Oyundasın).`);
+                return;
+            }
+
+            pendingInviteRoom = invite.room;
+            pendingInviteType = invite.type || 'normal'; // Capture Type
+
+            document.getElementById('inviterNameDisplay').innerText = invite.from;
+            const typeText = (invite.type === 'word') ? "KELİME DÜELLOSU" : "Sayı Tahmin";
+            document.querySelector('#modal-invite-incoming h3').innerText = `📨 DAVET VAR! (${typeText})`;
+
+            showModal('modal-invite-incoming');
+            AudioEngine.notification();
+        });
+    }
+
+    // We also need to update acceptInvite to use pendingInviteType
+    function acceptInvite() {
+        closeModal('modal-invite-incoming');
+        if (pendingInviteRoom) {
+            if (typeof pendingInviteType !== 'undefined' && pendingInviteType === 'word') {
+                joinWordRoom(pendingInviteRoom);
+            } else {
+                if (game.room && !game.active) leaveRoom();
+                joinRoom(pendingInviteRoom);
+            }
+        }
+    }
+
+    // OVERRIDE AD MANAGER MOCK
+    if (typeof AdManager !== 'undefined') {
+        AdManager.runWebMock = function (isInterstitial = false) {
+            if (this.mockRunning) return;
+            this.mockRunning = true;
+
+            showModal('modal-ad-watch');
+            const modalBody = document.querySelector('#modal-ad-watch .modal-box');
+            if(!modalBody) { this.mockRunning = false; return; }
+
+            if (!this.originalMockContent) this.originalMockContent = modalBody.innerHTML;
+
+            // Show Loading / Count
+            let timeLeft = 3;
+            modalBody.innerHTML = `<h3>📺 Reklam</h3><p style="font-size:1.2rem; font-weight:bold;">${timeLeft}</p>`;
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                if(timeLeft > 0) {
+                     modalBody.innerHTML = `<h3>📺 Reklam</h3><p style="font-size:1.2rem; font-weight:bold;">${timeLeft}</p>`;
+                } else {
+                    clearInterval(interval);
+                    // Time Over: Show Close Button
+                    modalBody.innerHTML = `
+                        <h3>✅ Reklam Bitti</h3>
+                        <p>Teşekkürler!</p>
+                        <button class="btn-red" onclick="AdManager.closeWebMock(${isInterstitial})">KAPAT (X)</button>
+                    `;
+                }
+            }, 1000);
+        };
+
+        AdManager.closeWebMock = function(isInterstitial) {
+             const modalBody = document.querySelector('#modal-ad-watch .modal-box');
+             if(modalBody && this.originalMockContent) modalBody.innerHTML = this.originalMockContent;
+
+             closeModal('modal-ad-watch');
+             this.mockRunning = false;
+
+             if (!isInterstitial && this.pendingCallback) {
+                 this.pendingCallback();
+                 this.pendingCallback = null;
+             }
+        };
+    }
