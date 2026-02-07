@@ -4638,14 +4638,11 @@ const THEMES = [
         mockRunning: false, // Prevent concurrent mocks
 
         // Ad Configuration
-        appId: "ca-app-pub-5879474591831999~1348513678",
+        appId: "18543851",
 
-        // AdMob Units
-        admobRewardedIds: [
-            "ca-app-pub-5879474591831999/1499369487",
-            "ca-app-pub-5879474591831999/4862883127"
-        ],
-        admobInterstitialId: "ca-app-pub-5879474591831999/9656400021",
+        // AdMob Units (DEPRECATED - REMOVED)
+        // admobRewardedIds: [],
+        // admobInterstitialId: "",
 
         // Yandex Units
         yandexRewardedId: "R-M-18543851-1",
@@ -4655,12 +4652,13 @@ const THEMES = [
 
         // Helper to pick a random unit ID from available networks
         pickRewardedUnitId: function() {
-            const pool = [...this.admobRewardedIds, this.yandexRewardedId];
-            return pool[Math.floor(Math.random() * pool.length)];
+            // Yandex Only
+            return this.yandexRewardedId;
         },
 
         pickInterstitialUnitId: function() {
-            return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
+            // Yandex Only
+            return this.yandexInterstitialId;
         },
 
         showRewardedAd: function (onSuccess) {
