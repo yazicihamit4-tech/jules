@@ -5767,24 +5767,11 @@ const THEMES = [
 
             user.inventory = val.inventory || [];
             user.clan = val.clan || "";
-            user.wordLevel = val.wordLevel || 1;
-            user.wordCareerWins = val.wordCareerWins || 0;
+            // Ensure numbers
+            user.wordLevel = val.wordLevel !== undefined ? Number(val.wordLevel) : 1;
+            user.wordCareerWins = val.wordCareerWins !== undefined ? Number(val.wordCareerWins) : 0;
             user.claimedWordRewards = val.claimedWordRewards || {};
 
-            // RESET LOGIC V3
-            if (!val.wordCareerResetV3) {
-                console.log("Resetting Word Career to V3 Defaults");
-                user.wordLevel = 1;
-                user.wordCareerWins = 0;
-                user.claimedWordRewards = {};
-                user.wordCareerResetV3 = true;
-                db.ref('users/' + name).update({
-                    wordLevel: 1,
-                    wordCareerWins: 0,
-                    claimedWordRewards: {},
-                    wordCareerResetV3: true
-                });
-            }
             user.winStreak = val.winStreak || 0;
             user.pet = val.pet || null; // Load pet data from DB
             user.totalMinutes = val.totalMinutes || 0; user.lastVaultTime = val.lastVaultTime || 0; user.items = val.items || { oracle: 0, freeze: 0, sabotage: 0 };
