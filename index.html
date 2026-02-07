@@ -3770,7 +3770,27 @@ text-align: center;
                     <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
-                            <input type="checkbox" id="checkVsCpu" style="width: 20px; height: 20px;">
+                            <input type="checkbox" id="checkVsCpu" style="width: 20px; height: 20px;" onchange="document.getElementById('pvcSecretDiv').style.display = this.checked ? 'block' : 'none'">
+                        </div>
+                        <div id="pvcSecretDiv" style="display:none; margin-top:5px;">
+                            <input type="number" id="playerSecretInput" placeholder="Kendi Sayını Tut (Boş=Rastgele)" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:5px;">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 10px;">
+                        <label style="font-size:0.75rem; font-weight:bold; color:#666;">Oyun Modu:</label>
+                        <select id="singleMode" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; margin-bottom:5px;" onchange="toggleSingleMode()">
+                            <option value="classic">Klasik (Haklı)</option>
+                            <option value="timed">Süreli (Zamanlı)</option>
+                        </select>
+
+                        <div id="singleDurationDiv" style="display:none;">
+                            <label style="font-size:0.75rem; font-weight:bold; color:#666;">Süre:</label>
+                            <select id="singleDuration" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9;">
+                                <option value="3">3 Dakika</option>
+                                <option value="5">5 Dakika</option>
+                                <option value="10">10 Dakika</option>
+                            </select>
                         </div>
                     </div>
 
@@ -3795,6 +3815,25 @@ text-align: center;
                             <option value="5">5 Basamak</option>
                         </select>
                         <button onclick="createRoom()" class="btn-blue" style="margin:0; padding: 5px; font-size: 0.7rem;">ODA KUR (50💰)</button>
+                    </div>
+
+                    <div style="margin-bottom:10px; padding:8px; background:#f9f9f9; border-radius:8px; border:1px solid #eee;">
+                        <label style="font-size:0.7rem; font-weight:bold;">Oda Ayarları:</label>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <select id="createMode" style="flex:1; padding:5px;" onchange="document.getElementById('createDuration').style.display = (this.value === 'timed') ? 'block' : 'none'">
+                                <option value="classic">Klasik</option>
+                                <option value="timed">Süreli</option>
+                            </select>
+                            <select id="createDuration" style="flex:1; padding:5px; display:none;">
+                                <option value="3">3 Dk</option>
+                                <option value="5">5 Dk</option>
+                                <option value="7">7 Dk</option>
+                            </select>
+                        </div>
+                        <select id="createPlayStyle" style="width:100%; margin-top:5px; padding:5px;">
+                            <option value="turn">Sıralı (Sıra Beklemeli)</option>
+                            <option value="simul">Eş Zamanlı (Hızlı)</option>
+                        </select>
                     </div>
 
                     <div style="display: flex; gap: 5px; align-items: center; background: #fff; border-top: 2px solid #f1f2f6; padding-top: 8px;">
@@ -7443,6 +7482,12 @@ function startSingle() {
             if (document.visibilityState === 'visible') updatePresence(true);
         });
     });
+    function toggleSingleMode() {
+        const mode = document.getElementById('singleMode').value;
+        const durDiv = document.getElementById('singleDurationDiv');
+        if (durDiv) durDiv.style.display = (mode === 'timed') ? 'block' : 'none';
+    }
+
     function setupListeners() {
         // AVATAR SEÇİM DİNLEYİCİSİ (GÜNCELLENDİ)
         document.querySelectorAll('.avatar-item').forEach(av => {
