@@ -4028,8 +4028,38 @@ text-align: center;
         <div class="modal-box">
             <h3>ℹ️ Oyun Hakkında</h3>
             <div id="aboutContent"
-                style="min-height:100px; max-height:300px; overflow-y:auto; text-align:left; padding:10px; background:#f4f4f4; border-radius:10px; margin-bottom:10px;">
-                Yükleniyor...
+                style="min-height:200px; max-height:400px; overflow-y:auto; text-align:left; padding:15px; background:#f9f9f9; border-radius:15px; margin-bottom:15px; font-size:0.9rem; line-height:1.5;">
+
+                <h4 style="color:#d35400; margin-top:0;">🎮 OYUN ÖZELLİKLERİ</h4>
+
+                <b>1. Sayı Tahmin Oyunu:</b><br>
+                Gizli sayıyı bulmaya çalış! Rakamlar birbirinden farklıdır. Her tahminde:<br>
+                🟢 <b>+ (Artı):</b> Rakam doğru yerde.<br>
+                🔴 <b>- (Eksi):</b> Rakam var ama yanlış yerde.<br>
+                <i>Örnek: Gizli 1234, Tahmin 1562 -> +1, -1</i><br><br>
+
+                <b>2. 🇹🇷 Kelime Hazinesi:</b><br>
+                Gizli kelimeyi bul! Wordle tarzı mantık:<br>
+                🟩 Yeşil: Doğru yer.<br>
+                🟨 Sarı: Kelimede var, yanlış yer.<br>
+                ⬜ Gri: Kelimede yok.<br><br>
+
+                <b>3. 🌍 Online Düello:</b><br>
+                Arkadaşlarınla veya rastgele rakiplerle kapış! Odayı kur, kodu paylaş veya aktif listeden davet gönder.<br><br>
+
+                <b>4. 🗺️ Kariyer Modu (Saga):</b><br>
+                Adım adım ilerleyerek en tepeye ulaş! Her seviyede 10 galibiyet alarak bir sonraki bölgeye geç.<br><br>
+
+                <b>5. 🐾 Evcil Hayvan Sistemi:</b><br>
+                Kedi, Köpek, Baykuş ve daha fazlası! Hayvanın sana oyunlarda bonus kazandırır (XP, Altın, Koruma). Onu beslemeyi unutma!<br><br>
+
+                <b>6. 🤠 Ödül Avcıları:</b><br>
+                Kendi başına bir ilan aç ve ödül koy. Diğer oyuncular senin belirlediğin zor sayıyı bulmaya çalışsın. Bulamazlarsa paraları senin olur!<br><br>
+
+                <b>7. 🛒 Market & Çanta:</b><br>
+                Kazandığın altınlarla tema, ipucu (Kahin, Dondurucu) veya evcil hayvan maması al.<br><br>
+
+                <i>İyi eğlenceler!</i>
             </div>
             <button onclick="closeModal('modal-about')" class="btn-dark">KAPAT</button>
         </div>
@@ -6778,11 +6808,17 @@ if (game.isPvc && game.active) {
 function startSingle() {
         const dStr = document.getElementById('singleDiffSelect').value;
         const d = parseInt(dStr) || 4;
-        const mode = document.getElementById('singleMode').value;
+
+        // Safety check for mode element
+        const modeEl = document.getElementById('singleMode');
+        const mode = modeEl ? modeEl.value : 'classic';
+
         const isPvc = document.getElementById('checkVsCpu').checked;
         let playerSecret = "";
         if (isPvc) {
-            const inputSecret = document.getElementById('playerSecretInput').value.trim();
+            const secretInputEl = document.getElementById('playerSecretInput');
+            const inputSecret = secretInputEl ? secretInputEl.value.trim() : "";
+
             // Validate input
             if (inputSecret) {
                 if (inputSecret.length !== d || new Set(inputSecret).size !== d) {
@@ -7165,14 +7201,23 @@ function startSingle() {
         updateGold(-50);
         const secret = generateNumber(d);
 
+        // Safety checks for config elements
+        const typeEl = document.getElementById('createMode');
+        const playStyleEl = document.getElementById('createPlayStyle');
+        const durationEl = document.getElementById('createDuration');
+
+        const configType = typeEl ? typeEl.value : 'classic';
+        const configPlayStyle = playStyleEl ? playStyleEl.value : 'normal';
+        const configDuration = durationEl ? parseInt(durationEl.value) : 5;
+
         db.ref('rooms/' + c).set({
             secret: secret,
             p1: { name: user.name, avatar: user.avatar },
             config: {
                 diff: d,
-                type: document.getElementById('createMode').value,
-                playStyle: document.getElementById('createPlayStyle').value,
-                duration: parseInt(document.getElementById('createDuration').value)
+                type: configType,
+                playStyle: configPlayStyle,
+                duration: configDuration
             },
             status: "waiting",
             turn: "p1",
@@ -9862,8 +9907,11 @@ function restartWordGame() {
 
         if (!data) return showToast("Veri yok!");
 
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
+        // Strict Filter: Ensure word length matches difficulty
+        const validPool = data.words.filter(w => w.length === diff);
+        if (validPool.length === 0) return showToast("Bu uzunlukta kelime bulunamadı!");
+
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         wordGameState = {
             active: true,
@@ -9912,7 +9960,12 @@ function restartWordGame() {
         const c = Math.floor(10000 + Math.random() * 90000).toString();
         const lvl = diff - 2;
         const data = WORD_DATA[lvl] || WORD_DATA[1];
-        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        // Strict Filter
+        const validPool = data.words.filter(w => w.length === diff);
+        if (validPool.length === 0) return showToast("Bu uzunlukta kelime verisi yok!");
+
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         db.ref('rooms/' + c).set({
             type: 'word',
