@@ -3387,6 +3387,9 @@ text-align: center;
             <button id="btnAdminPanel" class="btn-dark"
                 style="display:none; width:auto; padding:5px 10px; font-size:0.7rem; margin-top:10px;"
                 onclick="changeScreen('screen-admin')">👑 Yönetim</button>
+
+            <!-- Yandex Native Ad Container -->
+            <div id="nativeAdContainer" style="width:100%; height:auto; min-height:100px; margin-top:10px; background:rgba(0,0,0,0.05); border-radius:10px;"></div>
         </div>
         <div class="bottom-nav" style="padding: 0 5px;">
             <div class="nav-item active" onclick="showSection('home')">
@@ -4543,7 +4546,6 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
     let messaging; // Messaging servisi için değişken
     let user = { name: "", avatar: "😎", gold: 500, xp: 0, level: 1, wordLevel: 1, careerLevel: 1, careerWins: 0, clan: "", winStreak: 0, extraSpins: 0, inventory: [], totalMinutes: 0, lastVaultTime: 0, claimedCareerRewards: {}, items: { oracle: 0, freeze: 0, sabotage: 0 } }; let gamesPlayedCount = 0; // Reklam sayacı
     const ADMIN_NAMES = ["YazHamit", "Yazhamit"];
-    const FORCE_AD_SIMULATOR = true; // Geliştirme aşamasında veya sorun olduğunda true yapın
     const VIP_NAMES = ["YazHamit", "Yazhamit"];
     const ADMIN_HASH = "OTc2NDkzLkh5"; // Base64 encoded
     const OKUEMEL_HASH = "RW1lbGfDtmthbHA="; // Base64 encoded
@@ -4596,141 +4598,40 @@ const THEMES = [
 
     const AdManager = {
         pendingCallback: null,
-        mockRunning: false, // Prevent concurrent mocks
 
-        // Ad Configuration
-        appId: "ca-app-pub-5879474591831999~1348513678",
-
-        // AdMob Units
-        admobRewardedIds: [
-            "ca-app-pub-5879474591831999/1499369487",
-            "ca-app-pub-5879474591831999/4862883127"
-        ],
-        admobInterstitialId: "ca-app-pub-5879474591831999/9656400021",
-
-        // Yandex Units
+        // Yandex Configuration
+        appId: "18543851",
         yandexRewardedId: "R-M-18543851-1",
         yandexInterstitialId: "R-M-18543851-2",
+        yandexNativeId: "R-M-18543851-3",
 
-        isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
-
-        // Helper to pick a random unit ID from available networks
-        pickRewardedUnitId: function() {
-            const pool = [...this.admobRewardedIds, this.yandexRewardedId];
-            return pool[Math.floor(Math.random() * pool.length)];
-        },
-
-        pickInterstitialUnitId: function() {
-            return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
+        isAndroid: function () {
+            return (typeof window.Android !== "undefined" && window.Android !== null);
         },
 
         showRewardedAd: function (onSuccess) {
             this.pendingCallback = onSuccess;
-            try {
-                if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                    this.runWebMock();
-                    return;
-                }
-
-                if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                    this.runWebMock();
-                    return;
-                }
-
-                if (this.isAndroid()) {
-                    const adUnitId = this.pickRewardedUnitId();
-                    try {
-                        if (typeof window.Android.showRewardedAd === 'function') {
-                            window.Android.showRewardedAd(adUnitId);
-                        } else if (typeof window.Android.showAd === 'function') {
-                            window.Android.showAd(adUnitId);
-                        } else {
-                            this.runWebMock();
-                        }
-                    } catch(e) { this.runWebMock(); }
-                } else {
-                    this.runWebMock();
-                }
-            } catch (err) { closeModal('modal-ad-watch'); }
-        },
-
-        showInterstitialAd: function () {
-            // Check for mock active to prevent double overlay
-            if (this.mockRunning) return;
-
-            try {
-                if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                    this.runWebMock(true);
-                    return;
-                }
-
-                if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                    this.runWebMock(true);
-                    return;
-                }
-
-                if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
-                    const adUnitId = this.pickInterstitialUnitId();
-                    try {
-                        window.Android.showInterstitial(adUnitId);
-                    } catch(e) {
-                        console.error("Native Interstitial Failed:", e);
-                        this.runWebMock(true); // Fallback
-                    }
-                } else {
-                    this.runWebMock(true);
-                }
-            } catch(e) {
-                console.error("Interstitial Error:", e);
+            if (this.isAndroid() && typeof window.Android.showRewardedAd === 'function') {
+                window.Android.showRewardedAd(this.yandexRewardedId);
+            } else {
+                console.warn("Rewarded Ad: Android interface not found.");
             }
         },
 
-        runWebMock: function (isInterstitial = false) {
-            if (this.mockRunning) return;
-            this.mockRunning = true;
+        showInterstitialAd: function () {
+            if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
+                window.Android.showInterstitial(this.yandexInterstitialId);
+            } else {
+                console.warn("Interstitial Ad: Android interface not found.");
+            }
+        },
 
-            showModal('modal-ad-watch');
-            const modalBody = document.querySelector('#modal-ad-watch .modal-box');
-            if(!modalBody) { this.mockRunning = false; return; }
-
-            // Save original content (but ensure we don't save a modified state)
-            if (!this.originalMockContent) this.originalMockContent = modalBody.innerHTML;
-
-            // Reset content just in case
-            modalBody.innerHTML = this.originalMockContent;
-
-            let timeLeft = 3;
-            const pLabel = modalBody.querySelector('p');
-            if(pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                if (pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
-
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    this.mockRunning = false;
-
-                    // Restore and Close
-                    modalBody.innerHTML = this.originalMockContent;
-                    closeModal('modal-ad-watch');
-
-                    if (!isInterstitial && this.pendingCallback) {
-                        this.pendingCallback();
-                        this.pendingCallback = null;
-                    }
-                }
-            }, 1000);
-
-            // Safety timeout: Close after 5s no matter what
-            setTimeout(() => {
-                if(this.mockRunning) {
-                    clearInterval(interval);
-                    this.mockRunning = false;
-                    modalBody.innerHTML = this.originalMockContent;
-                    closeModal('modal-ad-watch');
-                }
-            }, 5000);
+        showNativeAd: function () {
+            if (this.isAndroid() && typeof window.Android.showNativeAd === 'function') {
+                window.Android.showNativeAd(this.yandexNativeId);
+            } else {
+                console.warn("Native Ad: Android interface not found.");
+            }
         }
     };
 
@@ -5050,6 +4951,9 @@ const THEMES = [
     function confirmLogout() { if (confirm("Çıkış?")) { localStorage.clear(); location.reload(); } }
 
     function updateLobbyUI() {
+        // REKLAM TETİKLE (Native)
+        if (typeof AdManager !== 'undefined') AdManager.showNativeAd();
+
         // PET SİSTEMİ BAŞLAT (Eğer başlamadıysa)
         if (typeof PetSystem !== 'undefined') PetSystem.init();
 
@@ -8809,7 +8713,6 @@ function startSingle() {
         }
 
         window.currentLifelineAction = function () {
-            // NativeAdManager might not be defined if ad system is missing, check it
             if (typeof AdManager !== 'undefined') {
                 AdManager.showRewardedAd(() => {
                     game.lifelineUsed = true;
@@ -8825,14 +8728,6 @@ function startSingle() {
                         showToast("+4 Hak Eklendi!");
                     }
                 });
-            } else {
-                // Mock for web testing if needed
-                // alert("Reklam (Mock): +Ã–dÃ¼l verildi.");
-                game.lifelineUsed = true;
-                closeModal('modal-lifeline');
-                if (type === 'time') { game.startTime += 30000; startTimerLoop(); }
-                else { game.rights += 4; updateTurnUI('p1'); }
-                showToast("Mock Ad Success");
             }
         };
         showModal('modal-lifeline');
@@ -10175,51 +10070,6 @@ function restartWordGame() {
         }
     }
 
-    // OVERRIDE AD MANAGER MOCK
-    if (typeof AdManager !== 'undefined') {
-        AdManager.runWebMock = function (isInterstitial = false) {
-            if (this.mockRunning) return;
-            this.mockRunning = true;
-
-            showModal('modal-ad-watch');
-            const modalBody = document.querySelector('#modal-ad-watch .modal-box');
-            if(!modalBody) { this.mockRunning = false; return; }
-
-            if (!this.originalMockContent) this.originalMockContent = modalBody.innerHTML;
-
-            // Show Loading / Count
-            let timeLeft = 3;
-            modalBody.innerHTML = `<h3>📺 Reklam</h3><p style="font-size:1.2rem; font-weight:bold;">${timeLeft}</p>`;
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                if(timeLeft > 0) {
-                     modalBody.innerHTML = `<h3>📺 Reklam</h3><p style="font-size:1.2rem; font-weight:bold;">${timeLeft}</p>`;
-                } else {
-                    clearInterval(interval);
-                    // Time Over: Show Close Button
-                    modalBody.innerHTML = `
-                        <h3>✅ Reklam Bitti</h3>
-                        <p>Teşekkürler!</p>
-                        <button class="btn-red" onclick="AdManager.closeWebMock(${isInterstitial})">KAPAT (X)</button>
-                    `;
-                }
-            }, 1000);
-        };
-
-        AdManager.closeWebMock = function(isInterstitial) {
-             const modalBody = document.querySelector('#modal-ad-watch .modal-box');
-             if(modalBody && this.originalMockContent) modalBody.innerHTML = this.originalMockContent;
-
-             closeModal('modal-ad-watch');
-             this.mockRunning = false;
-
-             if (!isInterstitial && this.pendingCallback) {
-                 this.pendingCallback();
-                 this.pendingCallback = null;
-             }
-        };
-    }
 
 </script>
 
