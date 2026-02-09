@@ -8661,10 +8661,52 @@ function startSingle() {
     function loadAboutText() {
         // İstemci tarafı: Metni çek ve göster
         db.ref('settings/aboutText').once('value').then(snap => {
-            const txt = snap.val();
+            let txt = snap.val();
             const container = document.getElementById('aboutContent');
+
+            // Kullanıcı isteği üzerine varsayılan detaylı açıklama
+            if (!txt) {
+                txt = `
+                <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+                    <h3 style="color:#d35400; border-bottom:2px solid #eee; padding-bottom:5px;">🎮 TAHMİN SON - OYUN ÖZELLİKLERİ</h3>
+
+                    <h4 style="color:#2980b9; margin-bottom:5px;">🔢 SAYI TAHMİN MODU</h4>
+                    <p>
+                        <b>• Tek Kişilik:</b> Klasik (Haklı) veya Süreli modlarda yapay zekaya karşı veya kendinle yarış.<br>
+                        <b>• Online Düello:</b> Gerçek rakiplerle eşleş, sayıyı önce bulan kazanır.<br>
+                        <b>• Kariyer Yolu:</b> Seviye seviye ilerleyerek zorlaşan görevleri tamamla ve sandıkları aç!
+                    </p>
+
+                    <h4 style="color:#8e44ad; margin-bottom:5px;">🇹🇷 KELİME HAZİNESİ (YENİ)</h4>
+                    <p>
+                        <b>• Wordle Tarzı:</b> 3-10 harfli kelimeleri tahmin et. Yeşil (Doğru yer), Sarı (Yanlış yer), Gri (Yok) ipuçlarını kullan.<br>
+                        <b>• Online Kelime Savaşı:</b> Rakibinden önce kelimeyi bulmaya çalış.<br>
+                        <b>• Kariyer (Kelime):</b> Kelime bilginle seviyeleri tırman.
+                    </p>
+
+                    <h4 style="color:#27ae60; margin-bottom:5px;">🐾 EVCİL HAYVAN (PET) SİSTEMİ</h4>
+                    <p>
+                        Kendi petini sahiplen, besle ve büyüt! Her pet sana özel avantajlar sağlar (Örn: Daha fazla altın, XP bonusu, ipucu şansı).
+                    </p>
+
+                    <h4 style="color:#f1c40f; margin-bottom:5px;">🏆 DİĞER ÖZELLİKLER</h4>
+                    <p>
+                        <b>• Ödül Avcıları:</b> Kendi ilannı oluştur veya başkalarının koyduğu ödülleri avla.<br>
+                        <b>• Klanlar:</b> Takımını kur, sıralamada yüksel.<br>
+                        <b>• Market & Çanta:</b> Oyun içi kazandığın altınlarla jokerler, temalar ve petler al.<br>
+                        <b>• Sohbet & DM:</b> Rakiplerinle veya arkadaşlarınla mesajlaş.<br>
+                        <b>• Günlük Görevler:</b> Her gün gir, görevleri yap, seriyi bozma ve büyük ödülü kap!
+                    </p>
+
+                    <div style="margin-top:10px; font-size:0.8rem; color:#7f8c8d; text-align:center;">
+                        <i>İyi Eğlenceler! - Yönetim</i>
+                    </div>
+                </div>
+                `;
+            }
+
             if (container) {
-                container.innerHTML = txt || "Henüz bir açıklama metni girilmemiş.";
+                container.innerHTML = txt;
             }
 
             // Eğer Admin panelindeysek inputu da doldur
