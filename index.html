@@ -392,30 +392,36 @@
             transform: scale(0.97);
         }
 
+        /* --- YENİ TATLI RENKLER (Sweet Gradients) --- */
         .btn-green {
-            background: linear-gradient(135deg, #2ecc71, #27ae60)
+            background: linear-gradient(135deg, #55efc4, #00b894) !important; /* Minty Green */
+            box-shadow: 0 4px 10px rgba(0, 184, 148, 0.3) !important;
         }
 
         .btn-blue {
-            background: linear-gradient(135deg, #3498db, #2980b9)
+            background: linear-gradient(135deg, #74b9ff, #0984e3) !important; /* Soft Blue */
+            box-shadow: 0 4px 10px rgba(9, 132, 227, 0.3) !important;
         }
 
         .btn-red {
-            background: linear-gradient(135deg, #e74c3c, #c0392b)
+            background: linear-gradient(135deg, #ff7675, #d63031) !important; /* Soft Red */
+            box-shadow: 0 4px 10px rgba(214, 48, 49, 0.3) !important;
         }
 
         .btn-gold {
-            background: linear-gradient(135deg, #f1c40f, #f39c12);
-            color: #000;
-            text-shadow: none;
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e) !important; /* Pastel Gold */
+            color: #2d3436 !important;
+            text-shadow: none !important;
+            box-shadow: 0 4px 10px rgba(253, 203, 110, 0.3) !important;
         }
 
         .btn-dark {
-            background: linear-gradient(135deg, #34495e, #2c3e50)
+            background: linear-gradient(135deg, #636e72, #2d3436) !important;
         }
 
         .btn-purple {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad)
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important; /* Lavender/Purple */
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3) !important;
         }
 
         .btn-grey {
@@ -7214,11 +7220,85 @@ function startSingle() {
     function sendAdminMessage() { const el = document.getElementById('adminMsgInput'); const msg = el.value.trim(); if (!msg) return showToast("Mesaj boş olamaz!"); db.ref('admin_messages').push({ user: user.name, text: msg, time: firebase.database.ServerValue.TIMESTAMP }, function (error) { if (error) { showToast("Hata oluştu: " + error); } else { showToast("Mesaj Yönetime İletildi!"); el.value = ""; closeModal('modal-contact'); } }); }
     window.deleteAdminMsg = function (key) { if (confirm('Mesaj silinsin mi?')) { db.ref('admin_messages/' + key).remove(); } }
     function loadAdminDashboard() { if (!ADMIN_NAMES.includes(user.name)) return; function listenAdminMessages() { const list = document.getElementById('adminMsgList'); if (!list) return; db.ref('admin_messages').off(); db.ref('admin_messages').limitToLast(20).on('value', function (snapshot) { let htmlContent = ""; if (!snapshot.exists()) { htmlContent = "<div style='padding:10px;text-align:center;color:#ccc;'>📭 Mesaj kutusu boş.</div>"; } else { let msgs = []; snapshot.forEach(function (child) { msgs.push({ key: child.key, val: child.val() }); }); msgs.reverse(); msgs.forEach(function (item) { const m = item.val; const dateStr = new Date(m.time).toLocaleString('tr-TR'); htmlContent += `<div class="list-item" style="flex-direction:column; align-items:flex-start; background:rgba(255,255,255,0.05); margin-bottom:5px; padding:8px; border-radius:5px;"><div style="display:flex; justify-content:space-between; width:100%; font-size:0.7rem; color:#aaa; margin-bottom:3px;"><span>👤 ${m.user}</span><span>🕒 ${dateStr}</span></div><div style="font-size:0.9rem; color:#fff; word-break:break-word; margin-bottom:5px;">${m.text}</div><button class="btn-red" style="width:100%; padding:4px; font-size:0.75rem;" onclick="deleteAdminMsg('${item.key}')">🗑️ Sil</button></div>`; }); } list.innerHTML = htmlContent; }); } listenAdminMessages(); if (!adminListenersActive) { db.ref('feedback_reports').limitToLast(20).on('value', snap => { const list = document.getElementById('adminReportList'); if (list) { list.innerHTML = ""; if (!snap.exists()) { list.innerHTML = "<small>Bildirim yok.</small>"; } else { snap.forEach(c => { const r = c.val(); const key = c.key; const time = new Date(r.time).toLocaleTimeString('tr-TR'); const html = `<div class="list-item" style="flex-direction:column; align-items:flex-start; gap:5px;"><div style="width:100%; display:flex; justify-content:space-between; font-size:0.75rem; color:#ccc;"><span>👤 ${r.user} | 🕒 ${time}</span><span>${r.context}</span></div><div style="width:100%; font-size:0.9rem;">${r.message}</div><button class="btn-red" style="width:100%; padding:5px; font-size:0.7rem;" onclick="db.ref('feedback_reports/${key}').remove()">🗑️ SİL / ÇÖZÜLDÜ</button></div>`; list.innerHTML = html + list.innerHTML; }); } } }); } if (adminListenersActive) { renderAdminView(); return; } const userList = document.getElementById('adminUserList'); userList.innerHTML = "Veriler alınıyor..."; db.ref('users').on('value', usersSnap => { adminData.users = usersSnap.val() || {}; renderAdminView(); }); db.ref('presence').on('value', presenceSnap => { adminData.presence = presenceSnap.val() || {}; renderAdminView(); }); db.ref('banned').on('value', bannedSnap => { adminData.banned = bannedSnap.val() || {}; renderAdminView(); }); adminListenersActive = true; }
-    function renderAdminView() { const list = document.getElementById('adminUserList'); if (!list) return; list.innerHTML = ""; let allUsersArray = Object.keys(adminData.users).map(key => { return { key: key, val: adminData.users[key] }; }); const onlineUsers = allUsersArray.filter(u => adminData.presence[u.key] && adminData.presence[u.key].status === 'online'); const offlineUsers = allUsersArray.filter(u => !adminData.presence[u.key] || adminData.presence[u.key].status !== 'online'); document.getElementById('btnFilterOnline').innerText = `🟢 Online (${onlineUsers.length})`; document.getElementById('btnFilterOffline').innerText = `⚫ Offline (${offlineUsers.length})`; document.getElementById('btnFilterNew').innerText = `🆕 Yeni`; document.getElementById('btnFilterOnline').style.opacity = currentAdminTab === 'online' ? '1' : '0.5'; document.getElementById('btnFilterOffline').style.opacity = currentAdminTab === 'offline' ? '1' : '0.5'; document.getElementById('btnFilterNew').style.opacity = currentAdminTab === 'new' ? '1' : '0.5'; let filtered = []; if (currentAdminTab === 'online') filtered = onlineUsers; else if (currentAdminTab === 'offline') filtered = offlineUsers.sort((a, b) => b.val.gold - a.val.gold); else if (currentAdminTab === 'new') filtered = [...allUsersArray].sort((a, b) => { const dateA = a.val.joinDate || 0; const dateB = b.val.joinDate || 0; return dateB - dateA; }); if (filtered.length === 0) { list.innerHTML = "<small>Kullanıcı yok.</small>"; return; } document.getElementById('statOnline').innerText = onlineUsers.length; document.getElementById('totalUserCount').innerText = allUsersArray.length; filtered.forEach(u => { const userName = u.key; const userData = u.val; const isOnline = adminData.presence[userName] && adminData.presence[userName].status === 'online'; const isBanned = adminData.banned[userName]; let league = "Çaylak"; if (userData.xp >= 2000) league = "Efsane"; else if (userData.xp >= 500) league = "Usta"; const mins = userData.totalMinutes || 0; const hours = (mins / 60).toFixed(1); const joinDate = userData.joinDate ? new Date(userData.joinDate).toLocaleDateString('tr-TR') : "-"; const item = document.createElement('div'); item.className = "list-item"; item.style.flexWrap = "wrap"; item.innerHTML = `<div style="flex:1;">${isOnline ? '🟢' : '⚫'} <b>${userName}</b> <small>(${userData.gold}💰)</small><br><small style="color:#eee;">${joinDate} | ${league} | ${hours} Saat</small>${isBanned ? '<span style="color:red;font-weight:bold;">[YASAKLI]</span>' : ''}</div><div style="display:flex; gap:5px; margin-top:5px;"><button class="btn-green" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', 100)">+100</button><button class="btn-red" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', -100)">-100</button><button class="${isBanned ? 'btn-blue' : 'btn-dark'}" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminToggleBan('${userName}', ${!isBanned})">${isBanned ? 'AÇ' : 'BAN'}</button></div>`; list.appendChild(item); }); }
+    function renderAdminView() {
+        const list = document.getElementById('adminUserList');
+        if (!list) return;
+        list.innerHTML = "";
+        let allUsersArray = Object.keys(adminData.users).map(key => { return { key: key, val: adminData.users[key] }; });
+        const onlineUsers = allUsersArray.filter(u => adminData.presence[u.key] && adminData.presence[u.key].status === 'online');
+        const offlineUsers = allUsersArray.filter(u => !adminData.presence[u.key] || adminData.presence[u.key].status !== 'online');
+
+        document.getElementById('btnFilterOnline').innerText = `🟢 Online (${onlineUsers.length})`;
+        document.getElementById('btnFilterOffline').innerText = `⚫ Offline (${offlineUsers.length})`;
+        document.getElementById('btnFilterNew').innerText = `🆕 Yeni`;
+
+        document.getElementById('btnFilterOnline').style.opacity = currentAdminTab === 'online' ? '1' : '0.5';
+        document.getElementById('btnFilterOffline').style.opacity = currentAdminTab === 'offline' ? '1' : '0.5';
+        document.getElementById('btnFilterNew').style.opacity = currentAdminTab === 'new' ? '1' : '0.5';
+
+        let filtered = [];
+        if (currentAdminTab === 'online') filtered = onlineUsers;
+        else if (currentAdminTab === 'offline') filtered = offlineUsers.sort((a, b) => b.val.gold - a.val.gold);
+        else if (currentAdminTab === 'new') filtered = [...allUsersArray].sort((a, b) => { const dateA = a.val.joinDate || 0; const dateB = b.val.joinDate || 0; return dateB - dateA; });
+
+        if (filtered.length === 0) { list.innerHTML = "<small>Kullanıcı yok.</small>"; return; }
+
+        document.getElementById('statOnline').innerText = onlineUsers.length;
+        document.getElementById('totalUserCount').innerText = allUsersArray.length;
+
+        filtered.forEach(u => {
+            const userName = u.key;
+            const userData = u.val;
+            const isOnline = adminData.presence[userName] && adminData.presence[userName].status === 'online';
+            const isBanned = adminData.banned[userName];
+            let league = "Çaylak";
+            if (userData.xp >= 2000) league = "Efsane";
+            else if (userData.xp >= 500) league = "Usta";
+            const mins = userData.totalMinutes || 0;
+            const hours = (mins / 60).toFixed(1);
+
+            // GELİŞMİŞ TARİH FORMATI (Gerçek Zaman)
+            const joinDate = userData.joinDate ? new Date(userData.joinDate).toLocaleString('tr-TR') : "-";
+
+            const item = document.createElement('div');
+            item.className = "list-item";
+            item.style.flexWrap = "wrap";
+            item.innerHTML = `
+            <div style="flex:1;">
+                ${isOnline ? '🟢' : '⚫'} <b>${userName}</b> <small>(${userData.gold}💰)</small><br>
+                <small style="color:#eee; font-size:0.75rem;">📅 ${joinDate}</small><br>
+                <small style="color:#bbb;">${league} | ${hours} Saat</small>
+                ${isBanned ? '<span style="color:red;font-weight:bold;">[YASAKLI]</span>' : ''}
+            </div>
+            <div style="display:flex; gap:5px; margin-top:5px; flex-wrap:wrap;">
+                <button class="btn-green" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', 100)">+100</button>
+                <button class="btn-red" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', -100)">-100</button>
+                <button class="${isBanned ? 'btn-blue' : 'btn-dark'}" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminToggleBan('${userName}', ${!isBanned})">${isBanned ? 'AÇ' : 'BAN'}</button>
+                <button class="btn-red" style="padding:2px 5px;width:auto;font-size:0.7rem; border:1px solid white;" onclick="adminDeleteUser('${userName}')">🗑️ SİL</button>
+            </div>`;
+            list.appendChild(item);
+        });
+    }
     function filterAdminUsers(mode) { currentAdminTab = mode; renderAdminView(); }
     function updateMarquee() { const input = document.getElementById('marqueeInput'); const text = input.value; if (!text) return showToast("Boş yazı gönderilemez!"); db.ref('system/marquee').set(text, (error) => { if (error) { showToast("Hata: " + error.message); } else { showToast("Kayan Yazı Güncellendi! 📢"); input.value = ""; } }); }
     function adminModifyGold(target, amount) { db.ref('users/' + target + '/gold').transaction(current => (current || 0) + amount).then(() => showToast(`${target}: ${amount > 0 ? '+' : ''}${amount} Altın`)); }
     function adminToggleBan(target, ban) { if (ban) db.ref('banned/' + target).set(true); else db.ref('banned/' + target).remove(); showToast(`${target} ${ban ? 'yasaklandı' : 'yasağı kalktı'}.`); loadAdminDashboard(); }
+    function adminDeleteUser(target) {
+        if (confirm(`DİKKAT! ${target} kullanıcısı TAMAMEN silinecek.\nBu işlem geri alınamaz!\n\nEmin misin?`)) {
+            const updates = {};
+            updates['users/' + target] = null;
+            updates['presence/' + target] = null;
+            updates['banned/' + target] = null;
+            updates['invites/' + target] = null;
+            // Remove from rankings/jackpots if possible, though listener updates handle most.
+            // We can also try to clean up daily/weekly lists if we calculate keys, but 'null' in users is usually enough to invalidate.
+
+            db.ref().update(updates).then(() => {
+                showToast(`🗑️ ${target} silindi.`);
+                renderAdminView();
+            }).catch(e => showToast("Hata: " + e.message));
+        }
+    }
     function sendBroadcast() { const t = document.getElementById('broadcastInput').value; if (t) { db.ref('announcements').set({ text: t, time: Date.now() }); showToast("Duyuru Yapıldı"); document.getElementById('broadcastInput').value = ""; } }
     function submitFeedback() { const t = document.getElementById('feedbackInput').value; if (!t) return showToast("Boş bırakma!"); const ctx = game.mode === 'online' ? "Room: " + game.room : "Single Player"; db.ref('feedback_reports').push({ user: user.name, message: t, context: ctx, time: Date.now() }); showToast("Gönderildi! Teşekkürler."); document.getElementById('feedbackInput').value = ""; closeModal('modal-feedback'); }
     // GÜNCELLENMİŞ CREATE ROOM (AYRI HAKLAR)
