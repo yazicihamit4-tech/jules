@@ -3354,18 +3354,18 @@ text-align: center;
         </div>
 
             <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
+                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
+                    <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
+                </button>
+                <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
+            </div>
+            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
                 <button id="btnBountyLobby" class="btn-gold" style="width:100%; background:linear-gradient(135deg, #f39c12, #d35400); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3);" onclick="openBountyScreen()">
                     🤠 ÖDÜL AVCILARI
                 </button>
                 <div onclick="event.stopPropagation(); showModal('modal-bounty-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#0984e3; color:white; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5;">
                     ?
                 </div>
-            </div>
-            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
-                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
-                    <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
-                </button>
-                <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
             </div>
 
 
@@ -3379,7 +3379,7 @@ text-align: center;
             <div class="card"
                 style="width:100%; max-width:350px; box-sizing:border-box; padding:10px; margin-top:10px;">
                 <h4 style="margin:0 0 10px 0; color:#eee;">🟢 Aktif Oyuncular</h4>
-                <div id="activePlayersList" class="list-container" style="height:100px;"></div>
+                <div id="lobbyActivePlayersList" class="list-container" style="height:100px;"></div>
             </div>
 
 
@@ -3838,7 +3838,7 @@ text-align: center;
                     <!-- Online Player List -->
                     <div style="margin-top:10px; border-top:1px dashed #ddd; padding-top:10px;">
                         <div style="font-size:0.75rem; font-weight:bold; color:#555; margin-bottom:5px;">🟢 Aktif Oyuncular (Sayı Daveti)</div>
-                        <div id="activePlayersList" class="list-container" style="height:120px; background:#fafafa;">
+                        <div id="setupActivePlayersList" class="list-container" style="height:120px; background:#fafafa;">
                            <div style="padding:10px; text-align:center; color:#999;">Yükleniyor...</div>
                         </div>
                     </div>
@@ -4022,11 +4022,10 @@ text-align: center;
     </div>
     <div id="modal-more" class="modal-overlay">
         <div class="modal-box">
-            <h3>🍔 Diğer</h3><button class="btn-dark" onclick="openClanModal()">🛡️ Klanım</button><button
+            <h3>🍔 Diğer</h3><button
                 class="btn-dark" onclick="openPetModalSafe()">🐾 Evcil Hayvanlar</button><button class="btn-gold"
                 onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-purple"
-                onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-blue"
-                onclick="showModal('modal-promo')">🎟️ Kupon Gir</button><button class="btn-dark"
+                onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-dark"
                 onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-dark"
                 onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-blue"
                 onclick="showModal('modal-about')">ℹ️ Oyun Hakkında</button><button class="btn-red"
@@ -4059,7 +4058,21 @@ text-align: center;
             <h3>ℹ️ Oyun Hakkında</h3>
             <div id="aboutContent"
                 style="min-height:100px; max-height:300px; overflow-y:auto; text-align:left; padding:10px; background:#f4f4f4; border-radius:10px; margin-bottom:10px;">
-                Yükleniyor...
+                <p><b>🎮 OYUN MODLARI</b></p>
+                <p><b>1. Sayı Tahmin (Klasik):</b> Tutulan sayıyı bulmaya çalış. + (Doğru yer), - (Yanlış yer) ipuçlarını kullan.</p>
+                <p><b>2. Kelime Hazinesi:</b> 5 harfli gizli kelimeyi bul. Yeşil: Doğru, Sarı: Yer yanlış.</p>
+                <p><b>3. Ödül Avcıları:</b> Zor bir şifre belirle ve ödül koy. Başkaları bulamazsa giriş ücretlerini sen kazanırsın!</p>
+                <p><b>4. Kariyer Modu:</b> Seviye atlayarak ilerle, zorlu bölümleri geç ve sandıkları topla.</p>
+                <hr>
+                <p><b>🐾 EVCİL HAYVANLAR</b></p>
+                <p>Petini besle, seviye atlat ve oyunlarda sana yardım etmesini sağla. (Ekstra hak, ipucu vb.)</p>
+                <hr>
+                <p><b>🏆 SIRALAMA & ÖDÜLLER</b></p>
+                <p><b>Günün Kralı:</b> O gün en çok altın kazanan oyuncu.</p>
+                <p><b>Speedrun:</b> Sayıyı en hızlı bulan rekorlar listesine girer.</p>
+                <hr>
+                <p><b>💬 SOSYAL</b></p>
+                <p>Diğer oyuncularla sohbet et, özel mesaj gönder ve klan kurulamasa da bireysel olarak yarış!</p>
             </div>
             <button onclick="closeModal('modal-about')" class="btn-dark">KAPAT</button>
         </div>
@@ -4124,26 +4137,6 @@ text-align: center;
             </div>
 
             <button onclick="closeModal('modal-career')" class="btn-grey" style="margin: 10px;">KAPAT</button>
-        </div>
-    </div>
-    <div id="modal-clan" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🛡️ Klan</h3>
-            <div id="clanCreateArea">
-                <p>1000 Altın karşılığı klan kur!</p><input type="text" id="clanNameInput"
-                    placeholder="Klan Adı"><button class="btn-blue" onclick="createClan()">KUR</button>
-            </div>
-            <div id="clanInfoArea" style="display:none;">
-                <h2 id="myClanName">...</h2>
-                <p>Üyesisin.</p><button class="btn-red" onclick="leaveClan()">AYRIL</button>
-            </div><button onclick="closeModal('modal-clan')" class="btn-dark">KAPAT</button>
-        </div>
-    </div>
-    <div id="modal-promo" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🎟️ Kupon</h3><input id="promoInput"><button onclick="redeemCode()"
-                class="btn-green">KULLAN</button><button onclick="closeModal('modal-promo')"
-                class="btn-red">İPTAL</button>
         </div>
     </div>
     <div id="modal-contact" class="modal-overlay">
@@ -4477,13 +4470,6 @@ text-align: center;
                 </div>
             </div>
         </div>
-        <div class="admin-section">
-            <h3>ℹ️ Oyun Hakkında Metni</h3>
-            <textarea id="adminAboutInput" placeholder="Oyun açıklaması... (HTML destekler)"
-                style="width:100%; height:100px; padding:10px; border-radius:8px; border:1px solid #ccc; font-family:sans-serif;"></textarea>
-            <button class="btn-green" onclick="saveAboutText()" style="width:100%; margin-top:5px;">METNİ
-                KAYDET</button>
-        </div>
 
         <div class="admin-section">
             <h3>📨 Gelen Mesajlar</h3>
@@ -4504,12 +4490,6 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 <div class="admin-section">
     <h3>📢 Şikayet & Bildirimler</h3>
     <div id="adminReportList" class="list-container" style="max-height:200px;">Yükleniyor...</div>
-</div>
-<div class="admin-section">
-    <h3>🎟️ Kupon</h3>
-    <div style="display:flex;gap:5px;"><input id="newPromoCode" placeholder="Kod"><input id="newPromoLimit"
-            placeholder="Lmt" style="width:50px;"><input id="newPromoReward" placeholder="Altın" style="width:50px;">
-    </div><button class="btn-green" onclick="createPromo()">OLUŞTUR</button>
 </div>
 <div class="admin-section">
     <h3>📢 Duyuru</h3><input id="broadcastInput"><button class="btn-gold" onclick="sendBroadcast()">GÖNDER</button>
@@ -5797,7 +5777,7 @@ const THEMES = [
                 db.ref('users/' + name).update({ receivedBonus2000: true });
                 setTimeout(() => showToast("🎉 OkuEmel Bonusu: +650 Altın!"), 1500);
             }
-            saveUser(); if (ADMIN_NAMES.includes(name)) checkAdmin(); checkBannedAndLogin(); startTimeTracker();
+            saveUser(); if (ADMIN_NAMES.includes(name)) checkAdmin(); checkBannedAndLogin(); startTimeTracker(); initPresenceSystem();
 
 
         });
@@ -5997,44 +5977,6 @@ const THEMES = [
             }
         } catch (err) { }
 
-        // 8. ONLINE OYUNCULAR LİSTESİ (Senin eklediğin HTML yapısı korundu)
-        const presenceRef = db.ref('presence');
-        presenceRef.off();
-        presenceRef.on('value', s => {
-            const list = document.getElementById('activePlayersList');
-            const inviteList = document.getElementById('inviteListWait');
-            if (!list || !inviteList) return;
-
-            list.innerHTML = "";
-            inviteList.innerHTML = "";
-            let hasData = false;
-
-            s.forEach(c => {
-                const pData = c.val();
-                if (c.key !== user.name && pData.status === 'online') {
-                    hasData = true;
-                    const itemHTML = `
-                <div class="list-item">
-                    <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
-                        🟢 ${c.key}
-                    </span>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-gold" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openUserProfile('${c.key}')">👤</button>
-                        <button class="btn-blue" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openDM('${c.key}')">💬</button>
-                        <button class="btn-green" style="width:auto;padding:5px;" onclick="inviteUser('${c.key}')">DAVET</button>
-                    </div>
-                </div>`;
-                    list.innerHTML += itemHTML;
-                    inviteList.innerHTML += itemHTML;
-                }
-            });
-
-            if (!hasData) {
-                const noData = "<small>Kimse yok.</small>";
-                list.innerHTML = noData;
-                inviteList.innerHTML = noData;
-            }
-        });
 
         // 9. ADMIN PANELİ VERİLERİ (Yetki kontrolün korundu)
         if (ADMIN_NAMES.includes(user.name) || VIP_NAMES.includes(user.name)) {
@@ -7331,11 +7273,6 @@ function startSingle() {
         listenRoom(c);
     }
     function joinRoom(c) { c = c.toString().trim(); if (c.length < 5) return showToast("Kod Hatalı"); if (user.gold < 50) return showToast("50 Altın Gerek"); db.ref('rooms/' + c).once('value').then(s => { const r = s.val(); if (!r) return showToast("Oda Yok"); if (r.status !== "waiting") return showToast("Oda Dolu"); updateGold(-50); game.room = c; game.role = "p2"; game.diff = r.config.diff; game.type = r.config.type; game.mode = "online"; game.playStyle = r.config.playStyle; game.duration = r.config.duration; game.secret = r.secret; db.ref('rooms/' + c).update({ p2: { name: user.name, avatar: user.avatar }, status: "playing", startTime: Date.now() }); db.ref('rooms/' + c).onDisconnect().update({ winner: 'p1', endReason: 'abandoned' }); closeModal('modal-setup'); listenRoom(c); }); }
-    function createPromo() { db.ref(`promo_codes/${document.getElementById('newPromoCode').value}`).set({ limit: parseInt(document.getElementById('newPromoLimit').value), reward: parseInt(document.getElementById('newPromoReward').value), used: 0 }); showToast("Kupon Hazır"); }
-    function redeemCode() { const c = document.getElementById('promoInput').value.toUpperCase(); db.ref(`promo_codes/${c}`).once('value').then(s => { const p = s.val(); if (!p || p.used >= p.limit) return showToast("Geçersiz"); db.ref(`users/${user.name}/used_codes/${c}`).once('value').then(u => { if (u.exists()) return showToast("Kullanıldı"); db.ref(`promo_codes/${c}/used`).transaction(x => (x || 0) + 1); db.ref(`users/${user.name}/used_codes/${c}`).set(true); updateGold(p.reward); showToast("Kazanıldı!"); AudioEngine.win(); closeModal('modal-promo'); }); }); }
-    function openClanModal() { showModal('modal-clan'); if (user.clan) { document.getElementById('clanCreateArea').style.display = 'none'; document.getElementById('clanInfoArea').style.display = 'block'; document.getElementById('myClanName').innerText = user.clan; } else { document.getElementById('clanCreateArea').style.display = 'block'; document.getElementById('clanInfoArea').style.display = 'none'; } }
-    function createClan() { const n = document.getElementById('clanNameInput').value.trim().toUpperCase(); if (user.gold < 1000) return showToast("1000 Altın"); db.ref('clans/' + n).once('value').then(s => { if (s.exists()) return showToast("Dolu"); updateGold(-1000); db.ref('clans/' + n).set({ leader: user.name }); db.ref('users/' + user.name + '/clan').set(n); user.clan = n; showToast("Kuruldu"); openClanModal(); }); }
-    function leaveClan() { if (confirm("Ayrıl?")) { db.ref(`users/${user.name}/clan`).remove(); user.clan = ""; showToast("Ayrıldın"); openClanModal(); } }
     function saveScore(s) { db.ref('users/' + user.name + '/totalScore').transaction(c => (c || 0) + s); db.ref('scores').push({ user: user.name, score: s, timestamp: Date.now() }); }
     function sendEmoji(emoji) { if (!game.room) return; showEmojiAnim(emoji, true); db.ref('rooms/' + game.room + '/emojis').push({ e: emoji, t: Date.now() }); }
     function showEmojiAnim(emoji, isSelf) { const el = document.createElement('div'); el.className = 'floating-emoji'; el.innerText = emoji; el.style.left = (20 + Math.random() * 60) + '%'; document.getElementById('emojiLayer').appendChild(el); setTimeout(() => el.remove(), 3000); }
@@ -7476,6 +7413,47 @@ function startSingle() {
             if (document.visibilityState === 'visible') updatePresence(true);
         });
     });
+    function initPresenceSystem() {
+        const presenceRef = db.ref('presence');
+        presenceRef.off();
+        presenceRef.on('value', s => {
+            // Update Lobby List
+            const lobbyList = document.getElementById('lobbyActivePlayersList');
+            // Update Setup List
+            const setupList = document.getElementById('setupActivePlayersList');
+            // Update Wait List (if exists) - reusing inviteListWait?
+            const inviteList = document.getElementById('inviteListWait');
+
+            let htmlContent = "";
+            let hasData = false;
+
+            s.forEach(c => {
+                const pData = c.val();
+                if (c.key !== user.name && pData.status === 'online') {
+                    hasData = true;
+                    htmlContent += `
+                <div class="list-item">
+                    <span onclick="openUserProfile('${c.key}')" style="cursor:pointer; font-weight:bold; border-bottom:1px dashed #ccc;">
+                        🟢 ${c.key}
+                    </span>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-gold" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openUserProfile('${c.key}')">👤</button>
+                        <button class="btn-blue" style="width:auto; padding:5px 10px; font-size:0.8rem;" onclick="openDM('${c.key}')">💬</button>
+                        <button class="btn-green" style="width:auto;padding:5px;" onclick="inviteUser('${c.key}')">DAVET</button>
+                    </div>
+                </div>`;
+                }
+            });
+
+            const noData = "<div style='padding:10px;text-align:center;color:#999;'><small>Kimse yok.</small></div>";
+            const finalContent = hasData ? htmlContent : noData;
+
+            if (lobbyList) lobbyList.innerHTML = finalContent;
+            if (setupList) setupList.innerHTML = finalContent;
+            if (inviteList) inviteList.innerHTML = finalContent;
+        });
+    }
+
     function setupListeners() {
         // AVATAR SEÇİM DİNLEYİCİSİ (GÜNCELLENDİ)
         document.querySelectorAll('.avatar-item').forEach(av => {
@@ -8735,32 +8713,6 @@ function startSingle() {
 
 
 
-    // --- OYUN HAKKINDA METNİ YÖNETİMİ ---
-    function saveAboutText() {
-        const txt = document.getElementById('adminAboutInput').value;
-        if (!txt) return showToast("Boş olamaz!");
-
-        db.ref('settings/aboutText').set(txt)
-            .then(() => showToast("✅ Metin Kaydedildi!"))
-            .catch(e => showToast("Hata: " + e.message));
-    }
-
-    function loadAboutText() {
-        // İstemci tarafı: Metni çek ve göster
-        db.ref('settings/aboutText').once('value').then(snap => {
-            const txt = snap.val();
-            const container = document.getElementById('aboutContent');
-            if (container) {
-                container.innerHTML = txt || "Henüz bir açıklama metni girilmemiş.";
-            }
-
-            // Eğer Admin panelindeysek inputu da doldur
-            const input = document.getElementById('adminAboutInput');
-            if (input && input.offsetParent !== null) { // Görünürse
-                input.value = txt || "";
-            }
-        });
-    }
 
     // --- ANDROID UYGULAMA İÇİN EKRAN YÖNÜ KİLİTLEME ---
     window.addEventListener('load', () => {
