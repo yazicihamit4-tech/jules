@@ -3765,12 +3765,27 @@ text-align: center;
                             <option value="4" selected>4 Basamaklı</option>
                             <option value="5">5 Basamaklı</option>
                         </select>
+                        <select id="singleMode" onchange="toggleTimeSelect('single')" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="classic">Klasik</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom:10px;">
+                        <select id="singleDuration" style="display:none; width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9;">
+                            <option value="180">3 Dakika</option>
+                            <option value="300" selected>5 Dakika</option>
+                            <option value="600">10 Dakika</option>
+                        </select>
                     </div>
 
                     <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
-                            <input type="checkbox" id="checkVsCpu" style="width: 20px; height: 20px;">
+                            <input type="checkbox" id="checkVsCpu" style="width: 20px; height: 20px;" onchange="document.getElementById('pvcSecretArea').style.display=this.checked?'block':'none'">
+                        </div>
+                        <div id="pvcSecretArea" style="display:none; margin-top:5px;">
+                            <input type="tel" id="playerSecretInput" placeholder="Senin Sayın (Boş=Rastgele)" maxlength="5" style="width:100%; padding:5px; font-size:0.8rem;">
                         </div>
                     </div>
 
@@ -3795,6 +3810,24 @@ text-align: center;
                             <option value="5">5 Basamak</option>
                         </select>
                         <button onclick="createRoom()" class="btn-blue" style="margin:0; padding: 5px; font-size: 0.7rem;">ODA KUR (50💰)</button>
+                    </div>
+
+                    <!-- Hidden Configs for Room Creation -->
+                    <div style="display:none;">
+                        <select id="createMode" onchange="toggleTimeSelect('online')">
+                            <option value="classic">Klasik</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                        <select id="createPlayStyle">
+                            <option value="turn">Sırayla</option>
+                            <option value="simul">Eş Zamanlı</option>
+                        </select>
+                        <div id="timeSelectDiv">
+                             <select id="createDuration">
+                                <option value="180">3 Dakika</option>
+                                <option value="300" selected>5 Dakika</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div style="display: flex; gap: 5px; align-items: center; background: #fff; border-top: 2px solid #f1f2f6; padding-top: 8px;">
@@ -9827,7 +9860,11 @@ function restartWordGame() {
         wordGameAdCounter++;
         // 4 oyunda bir
         if (wordGameAdCounter % 4 === 0) {
-            AdManager.showInterstitialAd();
+            try {
+                if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                    AdManager.showInterstitialAd();
+                }
+            } catch (e) { console.error("Ad Error:", e); }
         }
     }
 
