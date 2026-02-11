@@ -3127,7 +3127,7 @@ text-align: center;
 
         <!-- Banner Ad Container -->
         <div id="bannerAdContainer"
-            style="width:100%; min-height:100px; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,0.02); margin-bottom:10px; border-top: 1px solid #eee; padding-top: 5px; overflow:hidden;">
+            style="width:100%; min-height:150px; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,0.02); margin-bottom:15px; border-top: 1px solid #eee; padding-top: 5px; overflow:hidden;">
         </div>
 
         <div id="marqueeArea">
@@ -4711,10 +4711,14 @@ const THEMES = [
 
             container.style.display = 'flex'; // Ensure visible
 
-            if (this.isAndroid() && typeof window.Android.showBanner === 'function') {
+            if (this.isAndroid()) {
                 try {
-                    window.Android.showBanner(this.yandexBannerId);
-                } catch(e) { console.error("Banner error:", e); }
+                    if (typeof window.Android.showNativeAd === 'function') {
+                        window.Android.showNativeAd(this.yandexBannerId);
+                    } else if (typeof window.Android.showBanner === 'function') {
+                        window.Android.showBanner(this.yandexBannerId);
+                    }
+                } catch(e) { console.error("Ad error:", e); }
             } else {
                 // Mock Banner
                 container.innerHTML = `<div style="background:#333; color:#fff; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">📢 REKLAM ALANI (MOCK) 📢</div>`;
@@ -4722,10 +4726,14 @@ const THEMES = [
         },
 
         hideBannerAd: function () {
-            if (this.isAndroid() && typeof window.Android.hideBanner === 'function') {
+            if (this.isAndroid()) {
                 try {
-                    window.Android.hideBanner();
-                } catch(e) { console.error("Hide banner error:", e); }
+                    if (typeof window.Android.hideNativeAd === 'function') {
+                        window.Android.hideNativeAd();
+                    } else if (typeof window.Android.hideBanner === 'function') {
+                        window.Android.hideBanner();
+                    }
+                } catch(e) { console.error("Hide ad error:", e); }
             }
             // Ayrıca container'ı gizle
             const container = document.getElementById('bannerAdContainer');
