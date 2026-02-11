@@ -3127,7 +3127,7 @@ text-align: center;
 
         <!-- Banner Ad Container -->
         <div id="bannerAdContainer"
-            style="width:100%; min-height:60px; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,0.02); margin-bottom:20px; border-top: 1px solid #eee; padding-top: 10px;">
+            style="width:100%; min-height:100px; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,0.02); margin-bottom:10px; border-top: 1px solid #eee; padding-top: 5px; overflow:hidden;">
         </div>
 
         <div id="marqueeArea">
@@ -4630,6 +4630,7 @@ const THEMES = [
         // Yandex Units
         yandexRewardedId: "R-M-18543851-1",
         yandexInterstitialId: "R-M-18543851-2",
+        yandexBannerId: "R-M-18543851-3", // Banner ID
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
@@ -4702,6 +4703,33 @@ const THEMES = [
             } catch(e) {
                 console.error("Interstitial Error:", e);
             }
+        },
+
+        showBannerAd: function (containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            container.style.display = 'flex'; // Ensure visible
+
+            if (this.isAndroid() && typeof window.Android.showBanner === 'function') {
+                try {
+                    window.Android.showBanner(this.yandexBannerId);
+                } catch(e) { console.error("Banner error:", e); }
+            } else {
+                // Mock Banner
+                container.innerHTML = `<div style="background:#333; color:#fff; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:0.8rem;">📢 REKLAM ALANI (MOCK) 📢</div>`;
+            }
+        },
+
+        hideBannerAd: function () {
+            if (this.isAndroid() && typeof window.Android.hideBanner === 'function') {
+                try {
+                    window.Android.hideBanner();
+                } catch(e) { console.error("Hide banner error:", e); }
+            }
+            // Ayrıca container'ı gizle
+            const container = document.getElementById('bannerAdContainer');
+            if (container) container.style.display = 'none';
         },
 
         runWebMock: function (isInterstitial = false) {
@@ -5061,7 +5089,20 @@ const THEMES = [
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function generateNumber(l) { let n = []; while (n.length < l) { let r = Math.floor(Math.random() * 10); if (n.length === 0 && r === 0) continue; if (!n.includes(r)) n.push(r); } return n.join(""); }
-    function changeScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); currentScreen = id; if (id === 'screen-admin') loadAdminDashboard(); }
+    function changeScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        currentScreen = id;
+
+        // Banner Yönetimi
+        if (id === 'screen-lobby') {
+            if(typeof AdManager !== 'undefined') AdManager.showBannerAd('bannerAdContainer');
+        } else {
+            if(typeof AdManager !== 'undefined') AdManager.hideBannerAd();
+        }
+
+        if (id === 'screen-admin') loadAdminDashboard();
+    }
     function attemptExit() { showModal('modal-exit-confirm'); }
     function confirmExitGame() { closeModal('modal-exit-confirm'); leaveRoom(); }
     function handleBackButton() { if (game.active || currentScreen === 'screen-wait' || currentScreen === 'screen-game') { attemptExit(); } else if (currentScreen === 'screen-admin') changeScreen('screen-lobby'); document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
