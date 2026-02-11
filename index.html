@@ -6333,7 +6333,7 @@ const THEMES = [
     };
 function makeGuess() {
         if (!game.active) return;
-        const v = document.getElementById('guessInput').value;
+        const v = document.getElementById('guessInput').value.trim();
         const diff = parseInt(game.diff); // Garanti sayı
 
         // Hatalı giriş kontrolü
@@ -6865,19 +6865,9 @@ if (game.isPvc && game.active) {
             console.error("Kariyer ilerleme hatası:", e);
         }
 
-        // 4. REKLAM MANTIĞI (GECİKMELİ YAPILDI)
-        try {
-            gamesPlayedCount++;
-            // Her 2 oyunda bir reklam göster (Çift sayılarda)
-            if (gamesPlayedCount % 2 === 0) {
-                // BURASI DEĞİŞTİ: 1500ms (1.5 saniye) bekleyip öyle reklamı açıyor
-                setTimeout(() => {
-                    AdManager.showInterstitialAd();
-                }, 1500);
-            }
-        } catch (e) {
-            console.error("Reklam hatası:", e);
-        }
+        // 4. REKLAM MANTIĞI BURADAN KALDIRILDI!
+        // Artık kullanıcı 'Kapat' veya 'Tekrar Oyna' dediğinde reklam çıkacak.
+        gamesPlayedCount++;
     }
 
     function updateGameInterface(mode) {
@@ -9157,21 +9147,18 @@ function startSingle() {
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
-        // Logic to replay depends on mode.
-        // For single player:
+
+        // Show Ad (Safe Check)
+        if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+            // Her 2 oyunda bir gösterim (Basit sayaç)
+            window.globalAdCounter = (window.globalAdCounter || 0) + 1;
+            if (window.globalAdCounter % 2 === 0) {
+                AdManager.showInterstitialAd();
+            }
+        }
 
         // Word Game Replay
         if (currentScreen === 'screen-word-game') {
-             // Restart with last config
-             // We stored config in wordGameState?
-             // wordGameState has length and mode.
-
-             // Re-run setup logic manually or extract `restartWordGame`?
-             // Let's modify `startWordGameCustom` to optionally take params?
-             // Or just set the DOM elements and call it?
-             // But DOM might have changed.
-
-             // Better: define `restartWordGame()` that uses `wordGameState` params.
              restartWordGame();
              return;
         }
@@ -9182,16 +9169,10 @@ function startSingle() {
             openBountyScreen(); // Go back to list
         } else {
             // Online or Career
-            closeModal('modal-end'); // Should not be open but just in case
-            // If career, maybe next level?
+            closeModal('modal-end');
             if (game.mode === 'career') {
                openCareerMap();
             } else {
-               // Online rematch logic is separate, usually handled by modal-end.
-               // But if we used piggy for online win, we need to show rematch options.
-               // For now, let's just go to lobby for simplicity or show the old end modal?
-               // The user wanted a "nice animation".
-               // Let's just go to lobby for now to be safe.
                changeScreen('screen-lobby');
             }
         }
@@ -9203,6 +9184,15 @@ function startSingle() {
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
+
+        // Show Ad (Safe Check)
+        if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+            window.globalAdCounter = (window.globalAdCounter || 0) + 1;
+            if (window.globalAdCounter % 2 === 0) {
+                AdManager.showInterstitialAd();
+            }
+        }
+
         changeScreen('screen-lobby');
     }
 
@@ -9309,8 +9299,8 @@ function startSingle() {
         updateWordKeyboard();
         AudioEngine.notification();
 
-        // Check Win
-        if (guess === wordGameState.secret) {
+        // Check Win (Case Insensitive & Trimmed)
+        if (guess.toLocaleUpperCase('tr-TR').trim() === wordGameState.secret.toLocaleUpperCase('tr-TR').trim()) {
             wordGameState.active = false;
             setTimeout(() => {
                 handleWordGameWin();
@@ -9931,10 +9921,7 @@ function restartWordGame() {
             }
         }
 
-        setTimeout(() => {
-            changeScreen('screen-lobby');
-            checkWordGameAd();
-        }, 4000);
+        // Reklam kontrolü buradan kaldırıldı. Piggy kapatılınca yapılacak.
     }
 
     function checkWordGameAd() {
