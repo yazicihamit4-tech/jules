@@ -5036,11 +5036,6 @@ const THEMES = [
         t.className = "show";
         setTimeout(() => t.className = "", 3000);
     }
-    function showModal(id) {
-        document.getElementById(id).style.display = 'flex';
-        if (id === 'modal-about') loadAboutText();
-    }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function generateNumber(l) { let n = []; while (n.length < l) { let r = Math.floor(Math.random() * 10); if (n.length === 0 && r === 0) continue; if (!n.includes(r)) n.push(r); } return n.join(""); }
     function changeScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); currentScreen = id; if (id === 'screen-admin') loadAdminDashboard(); }
     function attemptExit() { showModal('modal-exit-confirm'); }
@@ -5407,53 +5402,6 @@ const THEMES = [
         }
     }
 
-    function listenForInvites() {
-        if (!user.name) return;
-
-        const inviteRef = db.ref('invites/' + user.name);
-        inviteRef.off(); // Önceki dinlemeyi kapat (Double listener önlemi)
-
-        inviteRef.on('child_added', snapshot => {
-            const invite = snapshot.val();
-            const key = snapshot.key;
-
-            // Daveti veritabanından hemen sil (Tek seferlik görünsün)
-            db.ref('invites/' + user.name + '/' + key).remove();
-
-            // Zaman aşımı kontrolü (2 dakikadan eski davetleri yoksay)
-            if (Date.now() - invite.timestamp > 120000) return;
-
-            // Eğer zaten oyun oynuyorsam daveti gösterme (Sadece Toast geç)
-            if (game.active) {
-                showToast(`📨 ${invite.from} seni davet etti (Oyundasın).`);
-                return;
-            }
-
-            // Daveti ekrana bas
-            pendingInviteRoom = invite.room;
-            document.getElementById('inviterNameDisplay').innerText = invite.from;
-            showModal('modal-invite-incoming');
-            AudioEngine.notification();
-
-            // Tarayıcı Bildirimi (İzin varsa)
-            if ("Notification" in window && Notification.permission === "granted") {
-                new Notification("TahminSon", { body: `${invite.from} seni oyuna davet etti!` });
-            }
-        });
-    }
-
-    function acceptInvite() {
-        closeModal('modal-invite-incoming');
-        if (pendingInviteRoom) {
-            // Mevcut bir odada bekliyorsam oradan çıkmalıyım
-            if (game.room && !game.active) {
-                leaveRoom();
-            }
-            // Odaya katıl
-            joinRoom(pendingInviteRoom);
-            pendingInviteRoom = null;
-        }
-    }
     function updatePresence(isOnline) { if (!db) return; const ref = db.ref('presence/' + user.name); if (isOnline) { ref.set({ status: 'online', lastActive: Date.now() }); ref.onDisconnect().remove(); } else { ref.remove(); } }
 
     // Global bir sessiz mod değişkeni tanımlıyoruz
@@ -9321,173 +9269,6 @@ function startSingle() {
         });
     }
 
-    function safeOpenWordSetup() {
-        showModal('modal-word-setup');
-    }
-
-    function startWordGameCustom() {
-        const diff = parseInt(document.getElementById('wordDiffSelect').value);
-        const isPvC = document.getElementById('checkWordVsCpu').checked;
-        const timeLimit = parseInt(document.getElementById('wordTimeSelect').value);
-        const moveLimit = parseInt(document.getElementById('wordMoveSelect').value);
-
-        // Correct Mapping: Length 3 -> Level 1
-        const lvl = diff - 2;
-        const data = WORD_DATA[lvl];
-
-        if (!data) {
-            return showToast("Bu seviye için kelime verisi bulunamadı!");
-        }
-
-        // Pick random word
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
-
-        // Validation: Ensure secret length matches difficulty
-        if (secret.length !== diff) {
-            console.error("Data Mismatch: Secret " + secret + " length " + secret.length + " != diff " + diff);
-            // Fallback: Pick another or show error
-            // For now, trust WORD_DATA (which I fixed in previous step)
-        }
-
-        wordGameState = {
-            active: true,
-            mode: isPvC ? 'pvc' : 'single',
-            secret: secret,
-            length: diff,
-            guesses: [],
-            maxGuesses: moveLimit, // Use selected move limit
-            currentGuess: "",
-            level: lvl,
-            startTime: Date.now(),
-            timeLimit: timeLimit // Store time limit (minutes)
-        };
-
-        if(isPvC) {
-            wordGameState.aiGuesses = [];
-        }
-
-        closeModal('modal-word-setup');
-        changeScreen('screen-word-game');
-        renderWordBoard();
-        updateWordKeyboard();
-
-        // Start Timer if enabled
-        if (timeLimit > 0) {
-            startWordTimer(timeLimit);
-        } else {
-            stopWordTimer(); // Clear any existing
-            document.getElementById('wordTimerDisplay').style.display = 'none';
-        }
-
-        const modeText = isPvC ? '🆚 Bilgisayar' : 'Tek Kişilik';
-        document.getElementById('wordLevelDisplay').innerText = `${diff} Harf - ${moveLimit} Hamle - ${modeText}`;
-    }
-
-    function createWordRoom() {
-        if (user.gold < 50) return showToast("50 Altın Gerek");
-        const c = Math.floor(10000 + Math.random() * 90000).toString();
-        const diff = parseInt(document.getElementById('createWordDiff').value);
-
-        updateGold(-50);
-
-        // Pick Secret Word (Shared? or Each has own?)
-        // "Rakam oyununda olan tüm özellikler" -> Usually shared secret or symmetrical.
-        // Let's pick ONE secret word for both to guess. Race.
-
-        const lvl = diff - 2;
-        const data = WORD_DATA[lvl] || WORD_DATA[1];
-        const secret = data.words[Math.floor(Math.random() * data.words.length)];
-
-        db.ref('rooms/' + c).set({
-            type: 'word',
-            secret: secret,
-            p1: { name: user.name, avatar: user.avatar },
-            config: { length: diff },
-            status: "waiting",
-            startTime: Date.now()
-        });
-
-        db.ref('rooms/' + c).onDisconnect().remove();
-        game.room = c;
-        game.role = "p1";
-
-        closeModal('modal-word-setup');
-        changeScreen('screen-wait');
-        document.getElementById('roomCodeDisplay').innerText = c;
-        document.getElementById('roomModeInfo').innerText = `Kelime (${diff})`;
-        listenWordRoom(c);
-    }
-
-    function joinWordRoom(c) {
-        c = c.toString().trim();
-        db.ref('rooms/' + c).once('value').then(s => {
-            const r = s.val();
-            if (!r || r.type !== 'word') return showToast("Oda Yok/Hatalı");
-            if (r.status !== "waiting") return showToast("Dolu");
-
-            updateGold(-50);
-            game.room = c;
-            game.role = "p2";
-
-            db.ref('rooms/' + c).update({
-                p2: { name: user.name, avatar: user.avatar },
-                status: "playing",
-                startTime: Date.now()
-            });
-
-            closeModal('modal-word-setup');
-            listenWordRoom(c);
-        });
-    }
-
-    function listenWordRoom(c) {
-        db.ref('rooms/' + c).on('value', s => {
-            const r = s.val();
-            if (!r) return;
-
-            if (r.status === 'playing' && currentScreen !== 'screen-word-game') {
-                // Start Game
-                wordGameState = {
-                    active: true,
-                    mode: 'online',
-                    secret: r.secret,
-                    length: r.config.length,
-                    guesses: [],
-                    maxGuesses: 6,
-                    currentGuess: "",
-                    level: r.config.length - 2
-                };
-                changeScreen('screen-word-game');
-                renderWordBoard();
-                updateWordKeyboard();
-                showToast("DÜELLO BAŞLADI!");
-            }
-
-            // Check Winner
-            if (r.winner) {
-                if (r.winner === user.name) {
-                    showPiggyWin(500);
-                } else {
-                    alert("KAYBETTİN! Kazanan: " + r.winner);
-                    changeScreen('screen-lobby');
-                }
-                db.ref('rooms/' + c).off();
-            }
-        });
-
-        // Listen for Opponent Moves (Optional: Show ghost rows?)
-        // For now, simpler: First to guess wins.
-
-        db.ref('rooms/' + c + '/word_moves').on('child_added', s => {
-            const m = s.val();
-            if (m.g === wordGameState.secret) {
-                // Someone won
-                db.ref('rooms/' + c).update({ winner: m.u });
-            }
-        });
-    }
-
     function openWordCareer() {
         showModal('modal-word-career');
         const container = document.getElementById('wordCareerContent');
@@ -10102,7 +9883,10 @@ function restartWordGame() {
                 // Listen for opponent moves
                 db.ref('rooms/' + c + '/word_moves').off();
                 db.ref('rooms/' + c + '/word_moves').on('child_added', s => {
-                   // Logic for moves display... (Simplified)
+                   const m = s.val();
+                   if (m.g === wordGameState.secret) {
+                       db.ref('rooms/' + c).update({ winner: m.u });
+                   }
                 });
             }
 
