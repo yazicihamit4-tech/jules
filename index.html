@@ -3989,11 +3989,10 @@ text-align: center;
     </div>
     <div id="modal-more" class="modal-overlay">
         <div class="modal-box">
-            <h3>🍔 Diğer</h3><button class="btn-dark" onclick="openClanModal()">🛡️ Klanım</button><button
+            <h3>🍔 Diğer</h3><button
                 class="btn-dark" onclick="openPetModalSafe()">🐾 Evcil Hayvanlar</button><button class="btn-gold"
                 onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-purple"
-                onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-blue"
-                onclick="showModal('modal-promo')">🎟️ Kupon Gir</button><button class="btn-dark"
+                onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-dark"
                 onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-dark"
                 onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-blue"
                 onclick="showModal('modal-about')">ℹ️ Oyun Hakkında</button><button class="btn-red"
@@ -4091,26 +4090,6 @@ text-align: center;
             </div>
 
             <button onclick="closeModal('modal-career')" class="btn-grey" style="margin: 10px;">KAPAT</button>
-        </div>
-    </div>
-    <div id="modal-clan" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🛡️ Klan</h3>
-            <div id="clanCreateArea">
-                <p>1000 Altın karşılığı klan kur!</p><input type="text" id="clanNameInput"
-                    placeholder="Klan Adı"><button class="btn-blue" onclick="createClan()">KUR</button>
-            </div>
-            <div id="clanInfoArea" style="display:none;">
-                <h2 id="myClanName">...</h2>
-                <p>Üyesisin.</p><button class="btn-red" onclick="leaveClan()">AYRIL</button>
-            </div><button onclick="closeModal('modal-clan')" class="btn-dark">KAPAT</button>
-        </div>
-    </div>
-    <div id="modal-promo" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🎟️ Kupon</h3><input id="promoInput"><button onclick="redeemCode()"
-                class="btn-green">KULLAN</button><button onclick="closeModal('modal-promo')"
-                class="btn-red">İPTAL</button>
         </div>
     </div>
     <div id="modal-contact" class="modal-overlay">
@@ -4471,12 +4450,6 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 <div class="admin-section">
     <h3>📢 Şikayet & Bildirimler</h3>
     <div id="adminReportList" class="list-container" style="max-height:200px;">Yükleniyor...</div>
-</div>
-<div class="admin-section">
-    <h3>🎟️ Kupon</h3>
-    <div style="display:flex;gap:5px;"><input id="newPromoCode" placeholder="Kod"><input id="newPromoLimit"
-            placeholder="Lmt" style="width:50px;"><input id="newPromoReward" placeholder="Altın" style="width:50px;">
-    </div><button class="btn-green" onclick="createPromo()">OLUŞTUR</button>
 </div>
 <div class="admin-section">
     <h3>📢 Duyuru</h3><input id="broadcastInput"><button class="btn-gold" onclick="sendBroadcast()">GÖNDER</button>
@@ -7246,11 +7219,6 @@ function startSingle() {
         listenRoom(c);
     }
     function joinRoom(c) { c = c.toString().trim(); if (c.length < 5) return showToast("Kod Hatalı"); if (user.gold < 50) return showToast("50 Altın Gerek"); db.ref('rooms/' + c).once('value').then(s => { const r = s.val(); if (!r) return showToast("Oda Yok"); if (r.status !== "waiting") return showToast("Oda Dolu"); updateGold(-50); game.room = c; game.role = "p2"; game.diff = r.config.diff; game.type = r.config.type; game.mode = "online"; game.playStyle = r.config.playStyle; game.duration = r.config.duration; game.secret = r.secret; db.ref('rooms/' + c).update({ p2: { name: user.name, avatar: user.avatar }, status: "playing", startTime: Date.now() }); db.ref('rooms/' + c).onDisconnect().update({ winner: 'p1', endReason: 'abandoned' }); closeModal('modal-setup'); listenRoom(c); }); }
-    function createPromo() { db.ref(`promo_codes/${document.getElementById('newPromoCode').value}`).set({ limit: parseInt(document.getElementById('newPromoLimit').value), reward: parseInt(document.getElementById('newPromoReward').value), used: 0 }); showToast("Kupon Hazır"); }
-    function redeemCode() { const c = document.getElementById('promoInput').value.toUpperCase(); db.ref(`promo_codes/${c}`).once('value').then(s => { const p = s.val(); if (!p || p.used >= p.limit) return showToast("Geçersiz"); db.ref(`users/${user.name}/used_codes/${c}`).once('value').then(u => { if (u.exists()) return showToast("Kullanıldı"); db.ref(`promo_codes/${c}/used`).transaction(x => (x || 0) + 1); db.ref(`users/${user.name}/used_codes/${c}`).set(true); updateGold(p.reward); showToast("Kazanıldı!"); AudioEngine.win(); closeModal('modal-promo'); }); }); }
-    function openClanModal() { showModal('modal-clan'); if (user.clan) { document.getElementById('clanCreateArea').style.display = 'none'; document.getElementById('clanInfoArea').style.display = 'block'; document.getElementById('myClanName').innerText = user.clan; } else { document.getElementById('clanCreateArea').style.display = 'block'; document.getElementById('clanInfoArea').style.display = 'none'; } }
-    function createClan() { const n = document.getElementById('clanNameInput').value.trim().toUpperCase(); if (user.gold < 1000) return showToast("1000 Altın"); db.ref('clans/' + n).once('value').then(s => { if (s.exists()) return showToast("Dolu"); updateGold(-1000); db.ref('clans/' + n).set({ leader: user.name }); db.ref('users/' + user.name + '/clan').set(n); user.clan = n; showToast("Kuruldu"); openClanModal(); }); }
-    function leaveClan() { if (confirm("Ayrıl?")) { db.ref(`users/${user.name}/clan`).remove(); user.clan = ""; showToast("Ayrıldın"); openClanModal(); } }
     function saveScore(s) { db.ref('users/' + user.name + '/totalScore').transaction(c => (c || 0) + s); db.ref('scores').push({ user: user.name, score: s, timestamp: Date.now() }); }
     function sendEmoji(emoji) { if (!game.room) return; showEmojiAnim(emoji, true); db.ref('rooms/' + game.room + '/emojis').push({ e: emoji, t: Date.now() }); }
     function showEmojiAnim(emoji, isSelf) { const el = document.createElement('div'); el.className = 'floating-emoji'; el.innerText = emoji; el.style.left = (20 + Math.random() * 60) + '%'; document.getElementById('emojiLayer').appendChild(el); setTimeout(() => el.remove(), 3000); }
@@ -8666,7 +8634,7 @@ function startSingle() {
             const txt = snap.val();
             const container = document.getElementById('aboutContent');
             if (container) {
-                container.innerHTML = txt || "Henüz bir açıklama metni girilmemiş.";
+                container.innerHTML = txt || " <h3>🎮 TahminSon Özellikleri</h3> <ul style='text-align:left; font-size:0.9rem;'> <li><b>🔢 Sayı Tahmin:</b> Klasik, Süreli ve Online düello modları.</li> <li><b>🇹🇷 Kelime Hazinesi:</b> 3-10 harfli kelimeleri bul, rakiplerle yarış.</li> <li><b>🐾 Evcil Hayvan Sistemi:</b> Kedini besle, büyüt ve bonuslar kazan.</li> <li><b>🔐 Günlük Kasa:</b> Her gün şifreyi çöz, büyük ödülü kap.</li> <li><b>🤠 Ödül Avcıları:</b> Zorlu sayıları bul, ödülleri topla.</li> <li><b>🏆 Lig ve Sıralama:</b> En iyiler arasına gir, rozetleri topla.</li> <li><b>🎒 Envanter ve Market:</b> Yardımcı eşyalar satın al ve kullan.</li> </ul> <p>İyi Eğlenceler! 🚀</p> ";
             }
 
             // Eğer Admin panelindeysek inputu da doldur
