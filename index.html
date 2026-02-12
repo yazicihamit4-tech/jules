@@ -3766,6 +3766,17 @@ text-align: center;
                             <option value="5">5 Basamaklı</option>
                         </select>
                     </div>
+                    <div style="display:flex; gap:6px; margin-bottom:10px;">
+                        <select id="singleMode" onchange="toggleTimeSelect('single')" style="flex:1; padding:8px; border-radius:8px; border:1px solid #dfe6e9; background:#fdfdfd; font-weight:600;">
+                            <option value="classic">Klasik (Haklı)</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                        <select id="singleDuration" style="flex:1; padding:8px; border-radius:8px; border:1px solid #dfe6e9; background:#fdfdfd; font-weight:600; display:none;">
+                            <option value="3">3 Dakika</option>
+                            <option value="5" selected>5 Dakika</option>
+                            <option value="7">7 Dakika</option>
+                        </select>
+                    </div>
 
                     <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -3788,7 +3799,24 @@ text-align: center;
                         <span style="font-weight: 800; color: #2d3436; font-size: 0.9rem;">🌍 ONLINE DÜELLO</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
+
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <select id="createMode" onchange="toggleTimeSelect('online')" style="flex:1; padding:6px; border-radius:6px; border:1px solid #dbeafe; font-size:0.75rem;">
+                            <option value="classic">Klasik</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                        <select id="createPlayStyle" style="flex:1; padding:6px; border-radius:6px; border:1px solid #dbeafe; font-size:0.75rem;">
+                            <option value="best_of_1">Tek Maç</option>
+                            <option value="best_of_3">3'te Biten</option>
+                        </select>
+                    </div>
+                    <div id="timeSelectDiv" style="margin-bottom:6px; display:none;">
+                         <select id="createDuration" style="width:100%; padding:6px; border-radius:6px; border:1px solid #dbeafe;">
+                            <option value="3">3 Dakika</option>
+                            <option value="5" selected>5 Dakika</option>
+                        </select>
+                    </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px;">
                         <select id="createDiff" style="padding: 6px; border-radius: 6px; border: 1px solid #dbeafe; font-size: 0.75rem; font-weight:600;">
                             <option value="3">3 Basamak</option>
                             <option value="4" selected>4 Basamak</option>
@@ -3877,8 +3905,11 @@ text-align: center;
                         </select>
                     </div>
                     <div id="singleMoveOptions" style="display:none; text-align:center; padding:10px; background:#f0f2f5; border-radius:8px; color:#2d3436; font-weight:bold; border:1px dashed #ccc;">
-                        15 HAK (Standart)
-                    </div>
+                        <select id="wordMoveSelect" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="10">10 Hak (Zor)</option>
+                            <option value="15" selected>15 Hak (Normal)</option>
+                            <option value="20">20 Hak (Kolay)</option>
+                        </select></div>
 
                     <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
