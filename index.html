@@ -7331,18 +7331,7 @@ function startSingle() {
 
             // GÜNLÜK VE HAFTALIK SIRALAMA GÜNCELLEMESİ (Sadece Kazançta)
             if (finalAmount > 0) {
-                const today = getDayKey();
-                const week = getWeekKey();
-
-                // Günlük Şampiyonluk
-                db.ref(`daily_jackpot/${today}/${user.name}`).transaction(current => {
-                    return (current || 0) + finalAmount;
-                });
-
-                // Haftalık Sıralama
-                db.ref(`weekly_rankings/${week}/${user.name}`).transaction(current => {
-                    return (current || 0) + finalAmount;
-                });
+                recordIncomeForUser(user.name, finalAmount);
             }
         }
 
@@ -7392,7 +7381,13 @@ function startSingle() {
     function renderAdminView() { const list = document.getElementById('adminUserList'); if (!list) return; list.innerHTML = ""; let allUsersArray = Object.keys(adminData.users).map(key => { return { key: key, val: adminData.users[key] }; }); const onlineUsers = allUsersArray.filter(u => adminData.presence[u.key] && adminData.presence[u.key].status === 'online'); const offlineUsers = allUsersArray.filter(u => !adminData.presence[u.key] || adminData.presence[u.key].status !== 'online'); document.getElementById('btnFilterOnline').innerText = `🟢 Online (${onlineUsers.length})`; document.getElementById('btnFilterOffline').innerText = `⚫ Offline (${offlineUsers.length})`; document.getElementById('btnFilterNew').innerText = `🆕 Yeni`; document.getElementById('btnFilterOnline').style.opacity = currentAdminTab === 'online' ? '1' : '0.5'; document.getElementById('btnFilterOffline').style.opacity = currentAdminTab === 'offline' ? '1' : '0.5'; document.getElementById('btnFilterNew').style.opacity = currentAdminTab === 'new' ? '1' : '0.5'; let filtered = []; if (currentAdminTab === 'online') filtered = onlineUsers; else if (currentAdminTab === 'offline') filtered = offlineUsers.sort((a, b) => b.val.gold - a.val.gold); else if (currentAdminTab === 'new') filtered = [...allUsersArray].sort((a, b) => { const dateA = a.val.joinDate || 0; const dateB = b.val.joinDate || 0; return dateB - dateA; }); if (filtered.length === 0) { list.innerHTML = "<small>Kullanıcı yok.</small>"; return; } document.getElementById('statOnline').innerText = onlineUsers.length; document.getElementById('totalUserCount').innerText = allUsersArray.length; filtered.forEach(u => { const userName = u.key; const userData = u.val; const isOnline = adminData.presence[userName] && adminData.presence[userName].status === 'online'; const isBanned = adminData.banned[userName]; let league = "Çaylak"; if (userData.xp >= 2000) league = "Efsane"; else if (userData.xp >= 500) league = "Usta"; const mins = userData.totalMinutes || 0; const hours = (mins / 60).toFixed(1); const joinDate = userData.joinDate ? new Date(userData.joinDate).toLocaleDateString('tr-TR') : "-"; const item = document.createElement('div'); item.className = "list-item"; item.style.flexWrap = "wrap"; item.innerHTML = `<div style="flex:1;">${isOnline ? '🟢' : '⚫'} <b>${userName}</b> <small>(${userData.gold}💰)</small><br><small style="color:#eee;">${joinDate} | ${league} | ${hours} Saat</small>${isBanned ? '<span style="color:red;font-weight:bold;">[YASAKLI]</span>' : ''}</div><div style="display:flex; gap:5px; margin-top:5px;"><button class="btn-green" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', 100)">+100</button><button class="btn-red" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminModifyGold('${userName}', -100)">-100</button><button class="${isBanned ? 'btn-blue' : 'btn-dark'}" style="padding:2px 5px;width:auto;font-size:0.7rem;" onclick="adminToggleBan('${userName}', ${!isBanned})">${isBanned ? 'AÇ' : 'BAN'}</button></div>`; list.appendChild(item); }); }
     function filterAdminUsers(mode) { currentAdminTab = mode; renderAdminView(); }
     function updateMarquee() { const input = document.getElementById('marqueeInput'); const text = input.value; if (!text) return showToast("Boş yazı gönderilemez!"); db.ref('system/marquee').set(text, (error) => { if (error) { showToast("Hata: " + error.message); } else { showToast("Kayan Yazı Güncellendi! 📢"); input.value = ""; } }); }
-    function adminModifyGold(target, amount) { db.ref('users/' + target + '/gold').transaction(current => (current || 0) + amount).then(() => showToast(`${target}: ${amount > 0 ? '+' : ''}${amount} Altın`)); }
+    function adminModifyGold(target, amount) {
+        db.ref('users/' + target + '/gold').transaction(current => (current || 0) + amount).then(() => {
+            showToast(`${target}: ${amount > 0 ? '+' : ''}${amount} Altın`);
+            // Admin eklemelerini de sıralamaya yansıt
+            if (amount > 0) recordIncomeForUser(target, amount);
+        });
+    }
     function adminToggleBan(target, ban) { if (ban) db.ref('banned/' + target).set(true); else db.ref('banned/' + target).remove(); showToast(`${target} ${ban ? 'yasaklandı' : 'yasağı kalktı'}.`); loadAdminDashboard(); }
     function sendBroadcast() { const t = document.getElementById('broadcastInput').value; if (t) { db.ref('announcements').set({ text: t, time: Date.now() }); showToast("Duyuru Yapıldı"); document.getElementById('broadcastInput').value = ""; } }
     function submitFeedback() { const t = document.getElementById('feedbackInput').value; if (!t) return showToast("Boş bırakma!"); const ctx = game.mode === 'online' ? "Room: " + game.room : "Single Player"; db.ref('feedback_reports').push({ user: user.name, message: t, context: ctx, time: Date.now() }); showToast("Gönderildi! Teşekkürler."); document.getElementById('feedbackInput').value = ""; closeModal('modal-feedback'); }
@@ -8984,6 +8979,22 @@ function startSingle() {
                 window.showModal('modal-pet');
             }
         }
+    }
+
+    // Ortak Kayıt Fonksiyonu
+    function recordIncomeForUser(username, amount) {
+        const today = getDayKey();
+        const week = getWeekKey();
+
+        // Günlük Şampiyonluk
+        db.ref(`daily_jackpot/${today}/${username}`).transaction(current => {
+            return (current || 0) + amount;
+        });
+
+        // Haftalık Sıralama
+        db.ref(`weekly_rankings/${week}/${username}`).transaction(current => {
+            return (current || 0) + amount;
+        });
     }
     window.openPetModalSafe = openPetModalSafe;
 
