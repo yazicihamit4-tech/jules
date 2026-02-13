@@ -3765,6 +3765,19 @@ text-align: center;
                         </select>
                     </div>
 
+                    <!-- Missing Mode Selection Added Back -->
+                    <div style="display:flex; gap:6px; margin-bottom:10px;">
+                        <select id="singleMode" onchange="toggleTimeSelect('single')" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="classic">Klasik (Haklı)</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                        <select id="singleDuration" style="flex:1; display:none; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="3">3 Dakika</option>
+                            <option value="5" selected>5 Dakika</option>
+                            <option value="7">7 Dakika</option>
+                        </select>
+                    </div>
+
                     <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
