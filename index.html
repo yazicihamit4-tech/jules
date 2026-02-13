@@ -3452,7 +3452,7 @@ text-align: center;
 
             <div class="play-container" style="margin-bottom: 20px;">
                 <div class="play-ring"></div>
-                <div class="play-btn-huge" onclick="safeOpenSetup()">
+                <div class="play-btn-huge" onclick="showModal('modal-game-select')">
                     <div class="play-content">
                         <div class="play-icon">▶</div>
                         <div class="play-text">BAŞLA</div>
@@ -3508,12 +3508,6 @@ text-align: center;
                 <div onclick="event.stopPropagation(); showModal('modal-bounty-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#0984e3; color:white; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5;">
                     ?
                 </div>
-            </div>
-            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
-                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
-                    <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
-                </button>
-                <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
             </div>
 
 
@@ -3889,6 +3883,23 @@ text-align: center;
                 Kapat
             </button>
 
+        </div>
+    </div>
+
+    <!-- OYUN SEÇİM MODALI -->
+    <div id="modal-game-select" class="modal-overlay" style="backdrop-filter: blur(5px);">
+        <div class="modal-box" style="padding: 30px; text-align: center;">
+            <h3 style="color:#d35400; font-size: 1.5rem; margin-bottom: 20px;">🎮 OYUN SEÇ</h3>
+
+            <button class="btn-green" onclick="closeModal('modal-game-select'); safeOpenSetup();" style="height: 80px; font-size: 1.2rem; margin-bottom: 15px; background: linear-gradient(135deg, #27ae60, #2ecc71);">
+                🔢 SAYI TAHMİN
+            </button>
+
+            <button class="btn-purple" onclick="closeModal('modal-game-select'); safeOpenWordSetup();" style="height: 80px; font-size: 1.2rem; background: linear-gradient(135deg, #8e44ad, #9b59b6);">
+                🅰️ KELİME HAZİNESİ
+            </button>
+
+            <button class="btn-grey" onclick="closeModal('modal-game-select')" style="margin-top: 20px;">İPTAL</button>
         </div>
     </div>
         <div id="modal-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
