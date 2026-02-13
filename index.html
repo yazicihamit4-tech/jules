@@ -7123,51 +7123,50 @@ function startSingle() {
 
     // RÖVANŞ İSTEĞİ (Her iki taraf da bunu kullanır)
     function requestRematch() {
-        // Tek kişilikse direkt başlat
-        // Tek kişilikse direkt başlat
-
-        // Word Game Replay
-        if (currentScreen === 'screen-word-game') {
-             // Restart with last config
-             // We stored config in wordGameState?
-             // wordGameState has length and mode.
-
-             // Re-run setup logic manually or extract `restartWordGame`?
-             // Let's modify `startWordGameCustom` to optionally take params?
-             // Or just set the DOM elements and call it?
-             // But DOM might have changed.
-
-             // Better: define `restartWordGame()` that uses `wordGameState` params.
-             restartWordGame();
-             return;
-        }
-
-        if (game.mode === 'single') {
-            const d = game.diff || 4; // Dropdowndan değil, mevcut oyundan al
-            document.getElementById('singleDiffSelect').value = d;
-            startSingle();
-            closeModal('modal-end');
-            return;
-        }
-
-        // Kariyer Moduysa direkt o seviyeyi tekrar başlat
-        if (game.mode === 'career') {
-            if (game.careerLvlIdx !== undefined) {
-                selectedCareerLvl = game.careerLvlIdx;
+        // 1. WORD GAME (SINGLE/CAREER)
+        if (currentScreen === 'screen-word-game' || (wordGameState && wordGameState.active)) {
+            if (wordGameState.mode === 'single' || wordGameState.mode === 'pvc') {
+                restartWordGame();
+                changeScreen('screen-word-game');
+            } else if (wordGameState.mode === 'career') {
+                startWordCareerLevel(wordGameState.level);
+            } else if (wordGameState.mode === 'online') {
+                initiateOnlineRematch('word');
             }
-            launchCareerGame(); // Mevcut seviye bilgileriyle yeniden başlatır
-            closeModal('modal-end');
             return;
         }
 
-        // Online Mod: Rövanş Teklif Modalını Aç
-        openRematchModal();
+        // 2. NUMBER GAME (SINGLE/BOUNTY/CAREER)
+        if (game.mode === 'single' || game.mode === 'pvc') {
+            startSingle();
+            changeScreen('screen-game');
+        } else if (game.mode === 'bounty') {
+            openBountyScreen(); // Bounties don't have direct rematch, go to list
+        } else if (game.mode === 'career') {
+            // Restore last level index
+            if (game.careerLvlIdx) selectedCareerLvl = game.careerLvlIdx;
+            launchCareerGame();
+        } else if (game.mode === 'online') {
+            initiateOnlineRematch('number');
+        }
     }
 
-    // --- RÖVANŞ SİSTEMİ (STABİL v2) ---
-    function openRematchModal() {
-        if (!game.room) return;
-        showModal('modal-rematch-offer');
+    // New Function to handle Online Rematch Initiation
+    function initiateOnlineRematch(type) {
+        if (game.rematchRequested) return;
+        game.rematchRequested = true;
+
+        const btn = document.getElementById('btnRematch');
+        if(btn) { btn.disabled = true; btn.innerText = "İstek Gönderildi..."; }
+
+        // Send Rematch Offer to Firebase
+        const path = 'rooms/' + game.room + '/rematch/' + game.role;
+        db.ref(path).set({
+            wants: true,
+            timestamp: Date.now()
+        });
+
+        showToast("Rövanş isteği gönderildi...");
     }
 
     function sendRematchOffer() {
@@ -7626,8 +7625,8 @@ function startSingle() {
             // RÖVANŞ KONTROLÜ (YENİ)
             checkRematchUpdates(r);
 
-            // Bağlantı kopma kontrolü
-            if (game.active && r.status === 'playing' && (!r.p1 || !r.p2)) {
+            // Bağlantı kopma kontrolü (Rövanş sırasında es geç)
+            if (game.active && r.status === 'playing' && (!r.p1 || !r.p2) && !game.rematchRequested) {
                 game.active = false;
                 showModal('modal-disconnect');
                 AudioEngine.success();
