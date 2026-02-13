@@ -3132,22 +3132,24 @@ text-align: center;
 /* 5. SANAL KLAVYE (KEYBOARD) */
 #wordKeyboard {
     width: 100%;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3) !important; /* Yarı saydam zemin */
+    padding: 8px 4px; /* Reduced side padding */
+    background: rgba(0, 0, 0, 0.3) !important;
     backdrop-filter: blur(10px);
     border-radius: 20px 20px 0 0 !important;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    box-sizing: border-box;
 }
 
 .key-btn {
     flex: 1;
-    height: 50px; /* Daha yüksek tuşlar */
-    margin: 2px;
+    height: 48px; /* Slightly shorter */
+    margin: 1px; /* Reduced margin */
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
 
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
+    min-width: 0; /* Allow shrinking */
     color: #fff;
 
     /* Tuş Tasarımı */
@@ -3173,6 +3175,18 @@ text-align: center;
 .key-btn.correct { background: #27ae60 !important; box-shadow: 0 3px 0 #1e8449; }
 .key-btn.present { background: #f39c12 !important; box-shadow: 0 3px 0 #d35400; }
 .key-btn.absent  { background: #2c3e50 !important; opacity: 0.4; pointer-events: none; }
+
+/* Mobile Optimization for Keyboard */
+@media (max-width: 380px) {
+    .key-btn {
+        height: 42px;
+        font-size: 0.75rem;
+        margin: 1px;
+    }
+    #wordKeyboard {
+        padding: 5px 2px;
+    }
+}
 
 /* 6. ANİMASYON KEYFRAMES */
 @keyframes tilePop {
