@@ -3004,21 +3004,21 @@ text-align: center;
 
 /* --- MODERN WORD GAME STYLES (v3.0) --- */
 
-/* 1. OYUN EKRANI ZEMİNİ */
-#screen-word-game {
+/* 1. OYUN EKRANI ZEMİNİ (WORD & NUMBER) */
+#screen-word-game, #screen-game {
     background: radial-gradient(circle at center, #2c3e50 0%, #000000 100%) !important;
     color: #fff !important;
 }
 
-#screen-word-game .card {
+#screen-word-game .card, #screen-game .card {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
 }
 
-/* 2. ÜST BİLGİ ÇUBUĞU */
-.word-game-header {
+/* 2. ÜST BİLGİ ÇUBUĞU (ORTAK) */
+.word-game-header, .game-header-modern {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 20px;
@@ -3031,7 +3031,7 @@ text-align: center;
     margin-bottom: 20px;
 }
 
-.word-game-title {
+.word-game-title, .game-title-modern {
     font-size: 0.9rem;
     font-weight: 800;
     letter-spacing: 1px;
@@ -3040,7 +3040,7 @@ text-align: center;
     text-shadow: 0 2px 10px rgba(241, 196, 15, 0.5);
 }
 
-.word-timer-badge {
+.word-timer-badge, .game-timer-badge {
     background: rgba(231, 76, 60, 0.2);
     color: #e74c3c;
     border: 1px solid #e74c3c;
@@ -3122,6 +3122,11 @@ text-align: center;
     border-color: #2c3e50;
     opacity: 0.8;
     animation: tileFlip 0.6s ease forwards;
+}
+
+/* Animasyonu Durdurma Sınıfı (Eski Satırlar İçin) */
+.word-cell.no-anim {
+    animation: none !important;
 }
 
 /* 5. SANAL KLAVYE (KEYBOARD) */
@@ -9422,17 +9427,45 @@ function startSingle() {
         board.style.gridTemplateColumns = `repeat(${wordGameState.length}, 1fr)`;
 
         // Render past guesses
-        wordGameState.guesses.forEach(guess => {
+        wordGameState.guesses.forEach((guess, index) => {
+            // Animasyon sadece son eklenen tahmin için çalışsın
+            // (index === wordGameState.guesses.length - 1)
+            // ANCAK: render her tuşta çalıştığı için bu da sürekli tetikler.
+            // Çözüm: Animasyon sınıfını ayrı tutmak veya sadece yeni eklendiğinde DOM'a eklemek.
+            // Basit çözüm: 'no-anim' sınıfı eklemek.
+
+            // Biz burada basitçe, eğer bu tahmin "yeni" ise animasyonlu, eski ise animasyonsuz çizeceğiz.
+            // Fakat DOM her render'da sıfırlanıyor.
+            // Bu yüzden CSS'i değiştirelim: .correct, .present, .absent sınıfları varsayılan olarak animasyonsuz olsun.
+            // Sadece .reveal sınıfı varsa animasyon oynasın.
+
             for (let i = 0; i < guess.length; i++) {
                 const letter = guess[i];
                 const secret = wordGameState.secret;
-                let status = 'absent'; // grey
+                let status = 'absent';
 
-                if (letter === secret[i]) status = 'correct'; // green
-                else if (secret.includes(letter)) status = 'present'; // yellow
+                if (letter === secret[i]) status = 'correct';
+                else if (secret.includes(letter)) status = 'present';
 
                 const cell = document.createElement('div');
-                cell.className = `word-cell ${status}`;
+                // Sadece son tahmin ise 'reveal' ekle, ama bu da her harf yazışta render olduğu için sorun olabilir.
+                // İdeal çözüm: submitWordGuess içinde animasyonu tetiklemek veya
+                // render fonksiyonunun 'partial' çalışması.
+                // Mevcut yapıyı bozmadan: Animasyon süresi 0.6s.
+                // Eğer tahmin çok yeniyse (son 1 sn içinde eklendiyse?) animasyon koy.
+                // Veya CSS'de animasyonu 'animation-iteration-count: 1' yaptık zaten.
+                // Sorun DOM'un silinip tekrar eklenmesi.
+
+                // HIZLI ÇÖZÜM: Animasyonu sadece "yeni" tahminlere verelim? Hayır, DOM yenileniyor.
+                // ÇÖZÜM: Statik (bitmiş) satırlar için animasyonsuz sınıf kullanmak.
+
+                let animClass = "";
+                // Eğer bu son tahmin DEĞİLSE, animasyonu engelle
+                if (index < wordGameState.guesses.length - 1) {
+                    animClass = "no-anim";
+                }
+
+                cell.className = `word-cell ${status} ${animClass}`;
                 cell.innerText = letter;
                 board.appendChild(cell);
             }
