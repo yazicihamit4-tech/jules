@@ -9677,16 +9677,15 @@ function startSingle() {
             return showToast("Bu seviye için kelime verisi bulunamadı!");
         }
 
-        // Pick random word
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
+        // Pick random word (STRICT FILTER)
+        const validPool = data.words.filter(w => w.length === diff);
 
-        // Validation: Ensure secret length matches difficulty
-        if (secret.length !== diff) {
-            console.error("Data Mismatch: Secret " + secret + " length " + secret.length + " != diff " + diff);
-            // Fallback: Pick another or show error
-            // For now, trust WORD_DATA (which I fixed in previous step)
+        if (validPool.length === 0) {
+            alert("HATA: Bu uzunlukta kelime verisi bulunamadı!");
+            return;
         }
+
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         wordGameState = {
             active: true,
@@ -9735,7 +9734,12 @@ function startSingle() {
 
         const lvl = diff - 2;
         const data = WORD_DATA[lvl] || WORD_DATA[1];
-        const secret = data.words[Math.floor(Math.random() * data.words.length)];
+
+        // Strict Filter
+        const validPool = data.words.filter(w => w.length === diff);
+        if (validPool.length === 0) return showToast("Kelime verisi hatası!");
+
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         db.ref('rooms/' + c).set({
             type: 'word',
@@ -9883,8 +9887,10 @@ function restartWordGame() {
 
         const lvl = diff - 2;
         const data = WORD_DATA[lvl] || WORD_DATA[1];
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
+
+        // Strict Filter
+        const validPool = data.words.filter(w => w.length === diff);
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         wordGameState = {
             active: true,
@@ -10312,8 +10318,11 @@ function restartWordGame() {
 
         if (!data) return showToast("Veri yok!");
 
-        const pool = data.words;
-        const secret = pool[Math.floor(Math.random() * pool.length)];
+        // Strict Filter
+        const validPool = data.words.filter(w => w.length === diff);
+        if (validPool.length === 0) return showToast("Kelime verisi hatası!");
+
+        const secret = validPool[Math.floor(Math.random() * validPool.length)];
 
         wordGameState = {
             active: true,
