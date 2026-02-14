@@ -1,0 +1,9 @@
+127.0.0.1 - - [14/Feb/2026 19:57:12] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 19:57:13] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 19:57:13] "GET /assets/pet_cat_3d.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 19:58:55] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 19:58:55] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 19:58:55] "GET /assets/pet_cat_3d.png HTTP/1.1" 404 -
+127.0.0.1 - - [14/Feb/2026 19:59:49] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [14/Feb/2026 19:59:49] code 404, message File not found
+127.0.0.1 - - [14/Feb/2026 19:59:49] "GET /assets/pet_cat_3d.png HTTP/1.1" 404 -

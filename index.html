@@ -3767,10 +3767,30 @@ text-align: center;
                         </select>
                     </div>
 
+                    <!-- EKSİK OLAN SEÇENEKLER EKLENDİ -->
+                    <div style="margin-bottom:10px;">
+                         <select id="singleMode" onchange="toggleSingleMode()" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="classic" selected>🎯 Klasik (Haklı)</option>
+                            <option value="timed">⏱️ Süreli</option>
+                        </select>
+                    </div>
+
+                    <div id="singleDurationArea" style="display:none; margin-bottom:10px;">
+                         <select id="singleDuration" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #dfe6e9; background: #fdfdfd; font-weight: 600;">
+                            <option value="3">3 Dakika</option>
+                            <option value="5" selected>5 Dakika</option>
+                            <option value="7">7 Dakika</option>
+                        </select>
+                    </div>
+
                     <div style="margin-top: 5px; padding: 8px; background: rgba(0,0,0,0.03); border-radius: 8px;">
                         <div style="display: flex; align-items: center; justify-content: space-between;">
                             <label style="font-size: 0.8rem; font-weight: bold; color: #555;">🤖 Bilgisayara Karşı</label>
-                            <input type="checkbox" id="checkVsCpu" style="width: 20px; height: 20px;">
+                            <input type="checkbox" id="checkVsCpu" onchange="toggleSinglePvC()" style="width: 20px; height: 20px;">
+                        </div>
+                        <div id="pvcSecretArea" style="display:none; margin-top:10px;">
+                             <input type="tel" id="playerSecretInput" placeholder="Gizli Sayını Gir" maxlength="5" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; text-align:center; letter-spacing:5px; font-size:1.1rem;">
+                             <small style="color:#666; font-size:0.7rem;">Rakamları farklı olmalı.</small>
                         </div>
                     </div>
 
@@ -6871,6 +6891,22 @@ if (game.isPvc && game.active) {
             if(chatContainer) chatContainer.style.display = 'none';
         }
     }
+    function toggleSingleMode() {
+        const mode = document.getElementById('singleMode').value;
+        const durArea = document.getElementById('singleDurationArea');
+        if (durArea) {
+             durArea.style.display = (mode === 'timed') ? 'block' : 'none';
+        }
+    }
+
+    function toggleSinglePvC() {
+        const check = document.getElementById('checkVsCpu');
+        const area = document.getElementById('pvcSecretArea');
+        if (area) {
+             area.style.display = check.checked ? 'block' : 'none';
+        }
+    }
+
 function startSingle() {
         const dStr = document.getElementById('singleDiffSelect').value;
         const d = parseInt(dStr) || 4;
