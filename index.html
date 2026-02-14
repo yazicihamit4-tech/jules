@@ -4458,11 +4458,18 @@ text-align: center;
             </div>
             <div id="coinDropLayer" class="coin-drop-layer"></div>
             <!-- BUTONLAR -->
-            <div id="piggyButtons" style="display:none; margin-top:25px; gap:10px; justify-content:center;">
-                <button class="btn-green" onclick="closePiggyAndReplay()" style="padding:15px 25px; font-size:1rem;">🔄
-                    TEKRAR OYNA</button>
-                <button class="btn-red" onclick="closePiggyAndExit()" style="padding:15px 25px; font-size:1rem;">🚪
-                    ÇIKIŞ</button>
+            <div id="piggyButtons" style="display:none; flex-direction:column; margin-top:25px; gap:10px; justify-content:center; align-items:center;">
+
+                <button id="btnDoubleMoney" class="btn-gold" onclick="onDoubleMoneyClicked()" style="width:100%; padding:15px 25px; font-size:1.1rem; background:linear-gradient(135deg, #f1c40f, #f39c12); box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4); animation: pulse-active 2s infinite;">
+                    🎬 PARAYI 2'YE KATLA
+                </button>
+
+                <div style="display:flex; gap:10px; width:100%;">
+                    <button class="btn-green" onclick="closePiggyAndReplay()" style="flex:1; padding:12px; font-size:0.9rem;">🔄
+                        TEKRAR</button>
+                    <button class="btn-red" onclick="closePiggyAndExit()" style="flex:1; padding:12px; font-size:0.9rem;">🚪
+                        ÇIKIŞ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -4774,8 +4781,8 @@ const THEMES = [
         */
 
         // Yandex Units (ACTIVE)
-        yandexRewardedId: "R-M-18543851-1",
-        yandexInterstitialId: "R-M-18543851-2",
+        yandexRewardedId: "R-M-18543851-5", // Updated
+        yandexInterstitialId: "R-M-18543851-4", // Updated
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
@@ -5802,7 +5809,68 @@ const THEMES = [
                 btns.style.display = 'flex';
                 btns.style.animation = 'slideUp 0.5s ease';
             }
+            // Trigger Native Logic if available
+            if (typeof window.Android !== 'undefined') {
+                try {
+                    // Try to show Interstitial after win (non-blocking if not ready)
+                    if (typeof window.Android.tryShowInterstitialAfterWin === 'function') {
+                        window.Android.tryShowInterstitialAfterWin();
+                    }
+                    // Notify Native side about win screen (optional, if native needs to prep rewarded)
+                    if (typeof window.Android.onWinScreenShown === 'function') {
+                        window.Android.onWinScreenShown(amount);
+                    }
+                } catch(e) { console.error(e); }
+            }
         }, 1500);
+    }
+
+    // --- NATIVE AD CALLBACKS (Called from Android) ---
+    function onAdRewardEarned() {
+        // Called when Rewarded Ad is completed
+        const amountEl = document.getElementById('piggyAmount');
+        const currentText = amountEl.innerText.replace('+','').replace(' Altın','');
+        let currentAmount = parseInt(currentText) || 0;
+
+        if (currentAmount > 0) {
+            updateGold(currentAmount); // Add the same amount again (Double)
+            amountEl.innerText = `+${currentAmount * 2} Altın`;
+            amountEl.style.color = '#2ecc71';
+            amountEl.style.animation = 'pulse-active 1s infinite';
+
+            showToast("💰 Para 2'ye Katlandı!");
+            AudioEngine.win();
+
+            // Disable button
+            const btnDouble = document.getElementById('btnDoubleMoney');
+            if(btnDouble) {
+                btnDouble.disabled = true;
+                btnDouble.innerText = "✅ 2x Alındı";
+                btnDouble.style.opacity = "0.6";
+            }
+        }
+    }
+
+    function onAdDismissed() {
+        // Called when ad is closed (Interstitial or Rewarded)
+        // Ensure UI is interactive
+        console.log("Ad dismissed via Native Callback");
+    }
+
+    function onAdFailed() {
+        showToast("Reklam yüklenemedi. Lütfen internet bağlantını kontrol et.");
+    }
+
+    function onDoubleMoneyClicked() {
+        if (typeof window.Android !== 'undefined' && typeof window.Android.showDoubleMoneyAd === 'function') {
+            window.Android.showDoubleMoneyAd();
+        } else {
+            // Fallback for Web/Test
+            console.log("Native showDoubleMoneyAd not found. Simulating...");
+            if(confirm("Reklam izlendi varsayılsın mı? (Web Test)")) {
+                onAdRewardEarned();
+            }
+        }
     }
 
 
