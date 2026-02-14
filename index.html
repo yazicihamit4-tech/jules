@@ -4116,8 +4116,7 @@ text-align: center;
                 onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-purple"
                 onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-dark"
                 onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-dark"
-                onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-blue"
-                onclick="showModal('modal-about')">ℹ️ Oyun Hakkında</button><button class="btn-red"
+                onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-red"
                 style="margin-top:15px;" onclick="confirmLogout()">ÇIKIŞ YAP</button><button class="btn-grey"
                 onclick="closeModal('modal-more')">KAPAT</button>
         </div>
@@ -4140,16 +4139,6 @@ text-align: center;
             <h3>Avatar Seç</h3>
             <div class="avatar-wrapper" id="changeAvatarList"></div><button onclick="closeModal('modal-avatar-change')"
                 class="btn-red" style="margin-top:10px;">İPTAL</button>
-        </div>
-    </div>
-    <div id="modal-about" class="modal-overlay">
-        <div class="modal-box">
-            <h3>ℹ️ Oyun Hakkında</h3>
-            <div id="aboutContent"
-                style="min-height:100px; max-height:300px; overflow-y:auto; text-align:left; padding:10px; background:#f4f4f4; border-radius:10px; margin-bottom:10px;">
-                Yükleniyor...
-            </div>
-            <button onclick="closeModal('modal-about')" class="btn-dark">KAPAT</button>
         </div>
     </div>
     <div id="modal-career-info" class="modal-overlay">
@@ -5135,7 +5124,6 @@ const THEMES = [
     }
     function showModal(id) {
         document.getElementById(id).style.display = 'flex';
-        if (id === 'modal-about') loadAboutText();
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function generateNumber(l) { let n = []; while (n.length < l) { let r = Math.floor(Math.random() * 10); if (n.length === 0 && r === 0) continue; if (!n.includes(r)) n.push(r); } return n.join(""); }
@@ -8771,58 +8759,6 @@ function startSingle() {
 
 
 
-    // --- OYUN HAKKINDA METNİ YÖNETİMİ ---
-    const FIXED_ABOUT_TEXT = `
-    <div style="text-align:left; line-height:1.6; font-size:0.9rem;">
-        <h3 style="color:#6c5ce7;">🎮 OYUN MODLARI</h3>
-
-        <b style="color:#d35400;">🔢 SAYI OYUNU (Klasik)</b><br>
-        • Amacın rakibin gizli sayısını bulmak.<br>
-        • + (Artı): Rakam doğru ve yeri doğru.<br>
-        • - (Eksi): Rakam doğru ama yeri yanlış.<br>
-        • İlk bulan kazanır! (Online) veya süreni yarıştır (Speedrun).<br><br>
-
-        <b style="color:#8e44ad;">🇹🇷 KELİME OYUNU</b><br>
-        • Gizli kelimeyi tahmin et.<br>
-        • 🟩 YEŞİL: Harf var ve yeri doğru.<br>
-        • 🟨 SARI: Harf var ama yeri yanlış.<br>
-        • ⬜ GRİ: Harf yok.<br><br>
-
-        <h3 style="color:#0984e3;">🏆 KARİYER MODLARI</h3>
-        • <b>Sayı Kariyeri:</b> 5 Seviye. Zorluk artar (3-7 hane).<br>
-        • <b>Kelime Kariyeri:</b> 8 Seviye. 3 harften 10 harfe kadar uzanır.<br>
-        • Her seviyede 10 galibiyet alarak sandık ödülünü kap!<br><br>
-
-        <h3 style="color:#00b894;">🐾 EVCİL HAYVAN (PET)</h3>
-        • Lobide seninle gezer.<br>
-        • Besledikçe enerji dolar.<br>
-        • Enerjisi tamken oyun sonu bonusu verir!<br><br>
-
-        <h3 style="color:#e17055;">🤠 ÖDÜL AVCILARI</h3>
-        • İlan tahtasından zorlu bir sayı seç.<br>
-        • Giriş ücretini öde ve sayıyı bulmaya çalış.<br>
-        • Bulursan büyük ödülü kazanırsın!<br><br>
-
-    </div>
-    `;
-
-    function saveAboutText() {
-        showToast("⚠️ Bu metin kod üzerinden kilitlendi, değiştirilemez.");
-    }
-
-    function loadAboutText() {
-        const container = document.getElementById('aboutContent');
-        if (container) {
-            container.innerHTML = FIXED_ABOUT_TEXT;
-        }
-
-        // Admin panel input (varsa)
-        const input = document.getElementById('adminAboutInput');
-        if (input && input.offsetParent !== null) {
-            input.value = "Metin kod içine kilitlendi (Güvenlik).";
-            input.disabled = true;
-        }
-    }
 
     // --- ANDROID UYGULAMA İÇİN EKRAN YÖNÜ KİLİTLEME ---
     window.addEventListener('load', () => {
