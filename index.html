@@ -3304,10 +3304,10 @@ text-align: center;
 
             <div class="play-container" style="margin-bottom: 20px;">
                 <div class="play-ring"></div>
-                <div class="play-btn-huge" onclick="safeOpenSetup()">
+                <div class="play-btn-huge" onclick="showModal('modal-game-selection')">
                     <div class="play-content">
                         <div class="play-icon">▶</div>
-                        <div class="play-text">BAŞLA</div>
+                        <div class="play-text">OYNA</div>
                     </div>
                 </div>
             </div>
@@ -3360,12 +3360,6 @@ text-align: center;
                 <div onclick="event.stopPropagation(); showModal('modal-bounty-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#0984e3; color:white; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5;">
                     ?
                 </div>
-            </div>
-            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
-                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
-                    <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
-                </button>
-                <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
             </div>
 
 
@@ -3739,6 +3733,28 @@ text-align: center;
 
         </div>
     </div>
+    <!-- GAME SELECTION MODAL -->
+    <div id="modal-game-selection" class="modal-overlay">
+        <div class="modal-box" style="display:flex; flex-direction:column; gap:15px;">
+            <h2 style="color:#2d3436; margin:0 0 10px 0;">Oyun Seçimi</h2>
+            <button class="btn-green" style="height:80px; font-size:1.2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:0 5px 15px rgba(46, 204, 113, 0.4);" onclick="closeModal('modal-game-selection'); safeOpenSetup();">
+                <span style="font-size:2.5rem;">🔢</span>
+                <div style="text-align:left; line-height:1.2;">
+                    <div>SAYI OYUNU</div>
+                    <small style="font-size:0.7rem; opacity:0.8;">Klasik Tahmin</small>
+                </div>
+            </button>
+            <button class="btn-purple" style="height:80px; font-size:1.2rem; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:0 5px 15px rgba(155, 89, 182, 0.4);" onclick="closeModal('modal-game-selection'); safeOpenWordSetup();">
+                <span style="font-size:2.5rem;">🇹🇷</span>
+                <div style="text-align:left; line-height:1.2;">
+                    <div>KELİME OYUNU</div>
+                    <small style="font-size:0.7rem; opacity:0.8;">Kelime Hazinesi</small>
+                </div>
+            </button>
+            <button class="btn-grey" onclick="closeModal('modal-game-selection')">İPTAL</button>
+        </div>
+    </div>
+
         <div id="modal-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
         <div class="modal-box"
             style="padding: 0; max-width: 420px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 85vh;">
@@ -6601,7 +6617,7 @@ if (game.isPvc && game.active) {
         const list = document.getElementById('lbContent');
         if (!list) return;
 
-        list.innerHTML = "<div style='text-align:center; padding:10px;'>Yükleniyor...</div>";
+        list.innerHTML = "<div style='text-align:center; padding:20px;'><div class='shake-anim' style='font-size:2rem;'>⌛</div><br>Veriler çekiliyor...</div>";
 
         let ref;
         try {
@@ -6617,7 +6633,7 @@ if (game.isPvc && game.active) {
                 ref = db.ref('users').orderByChild('gold');
             }
 
-            ref.limitToLast(20).once('value')
+            ref.limitToLast(50).once('value')
                 .then(snap => {
                     list.innerHTML = "";
                     let arr = [];
@@ -6644,14 +6660,16 @@ if (game.isPvc && game.active) {
                     }
 
                     if (arr.length === 0) {
-                        list.innerHTML = "<div style='text-align:center; padding:10px; color:#999;'>Kayıt yok.</div>";
+                        list.innerHTML = "<div style='text-align:center; padding:20px; color:#999;'>Bu listede henüz kimse yok.</div>";
                     } else {
                         arr.forEach((p, i) => {
                             let rankColor = "#333";
+                            let bgStyle = "background: #fff;";
                             let icon = "👤";
-                            if(i===0) { rankColor="#f1c40f"; icon="🥇"; }
-                            if(i===1) { rankColor="#bdc3c7"; icon="🥈"; }
-                            if(i===2) { rankColor="#cd7f32"; icon="🥉"; }
+
+                            if(i===0) { rankColor="#f1c40f"; icon="🥇"; bgStyle="background: linear-gradient(90deg, #fff, #fff9c4); border:1px solid #f1c40f;"; }
+                            if(i===1) { rankColor="#bdc3c7"; icon="🥈"; bgStyle="background: linear-gradient(90deg, #fff, #f5f6fa); border:1px solid #bdc3c7;"; }
+                            if(i===2) { rankColor="#cd7f32"; icon="🥉"; bgStyle="background: linear-gradient(90deg, #fff, #ffe0b2); border:1px solid #cd7f32;"; }
 
                             const suffix = (type === 'all') ? '💰' : '🏆';
 
@@ -6846,10 +6864,7 @@ if (game.isPvc && game.active) {
             gamesPlayedCount++;
             // Her 2 oyunda bir reklam göster (Çift sayılarda)
             if (gamesPlayedCount % 2 === 0) {
-                // BURASI DEĞİŞTİ: 1500ms (1.5 saniye) bekleyip öyle reklamı açıyor
-                setTimeout(() => {
-                    AdManager.showInterstitialAd();
-                }, 1500);
+                window.pendingAd = true;
             }
         } catch (e) {
             console.error("Reklam hatası:", e);
@@ -6978,45 +6993,43 @@ function startSingle() {
 
     // RÖVANŞ İSTEĞİ (Her iki taraf da bunu kullanır)
     function requestRematch() {
-        // Tek kişilikse direkt başlat
-        // Tek kişilikse direkt başlat
-
-        // Word Game Replay
-        if (currentScreen === 'screen-word-game') {
-             // Restart with last config
-             // We stored config in wordGameState?
-             // wordGameState has length and mode.
-
-             // Re-run setup logic manually or extract `restartWordGame`?
-             // Let's modify `startWordGameCustom` to optionally take params?
-             // Or just set the DOM elements and call it?
-             // But DOM might have changed.
-
-             // Better: define `restartWordGame()` that uses `wordGameState` params.
-             restartWordGame();
-             return;
-        }
-
-        if (game.mode === 'single') {
-            const d = game.diff || 4; // Dropdowndan değil, mevcut oyundan al
-            document.getElementById('singleDiffSelect').value = d;
-            startSingle();
-            closeModal('modal-end');
-            return;
-        }
-
-        // Kariyer Moduysa direkt o seviyeyi tekrar başlat
-        if (game.mode === 'career') {
-            if (game.careerLvlIdx !== undefined) {
-                selectedCareerLvl = game.careerLvlIdx;
+        const proceed = () => {
+            // Word Game Replay
+            if (currentScreen === 'screen-word-game') {
+                 restartWordGame();
+                 return;
             }
-            launchCareerGame(); // Mevcut seviye bilgileriyle yeniden başlatır
-            closeModal('modal-end');
-            return;
-        }
 
-        // Online Mod: Rövanş Teklif Modalını Aç
-        openRematchModal();
+            if (game.mode === 'single') {
+                const d = game.diff || 4;
+                document.getElementById('singleDiffSelect').value = d;
+                startSingle();
+                closeModal('modal-end');
+                return;
+            }
+
+            if (game.mode === 'career') {
+                if (game.careerLvlIdx !== undefined) {
+                    selectedCareerLvl = game.careerLvlIdx;
+                }
+                launchCareerGame();
+                closeModal('modal-end');
+                return;
+            }
+
+            openRematchModal();
+        };
+
+        if (window.pendingAd) {
+            window.pendingAd = false;
+            if (typeof AdManager !== 'undefined') {
+                AdManager.showInterstitialAd(proceed);
+            } else {
+                proceed();
+            }
+        } else {
+            proceed();
+        }
     }
 
     // --- RÖVANŞ SİSTEMİ (STABİL v2) ---
@@ -7130,25 +7143,38 @@ function startSingle() {
     function rejectRematchLegacy() { }
     function resetUI() { document.getElementById('history').innerHTML = ""; document.getElementById('guessInput').value = ""; document.getElementById('gameChatBox').innerHTML = ""; document.getElementById('endButtons').style.display = 'none'; }
     function leaveRoom() {
-        game.active = false;
-        stopTimer();
-        sessionStorage.removeItem('yh_game_room');
-        sessionStorage.removeItem('yh_game_role');
+        const proceed = () => {
+            game.active = false;
+            stopTimer();
+            sessionStorage.removeItem('yh_game_room');
+            sessionStorage.removeItem('yh_game_role');
 
-        resetUI(); // <--- EKLEME: Çıkarken ekranı temizle
-        closeModal('modal-end');
-        closeModal('modal-disconnect');
-        changeScreen('screen-lobby');
+            resetUI();
+            closeModal('modal-end');
+            closeModal('modal-disconnect');
+            changeScreen('screen-lobby');
 
-        if (game.room) {
-            db.ref('rooms/' + game.room).off();
-            db.ref('rooms/' + game.room + '/chat').off();
-            db.ref('rooms/' + game.room + '/moves').off();
-            db.ref('rooms/' + game.room).onDisconnect().cancel();
-            if (game.role === 'p1') {
-                db.ref('rooms/' + game.room).remove();
+            if (game.room) {
+                db.ref('rooms/' + game.room).off();
+                db.ref('rooms/' + game.room + '/chat').off();
+                db.ref('rooms/' + game.room + '/moves').off();
+                db.ref('rooms/' + game.room).onDisconnect().cancel();
+                if (game.role === 'p1') {
+                    db.ref('rooms/' + game.room).remove();
+                }
+                game.room = null;
             }
-            game.room = null;
+        };
+
+        if (window.pendingAd) {
+            window.pendingAd = false;
+            if (typeof AdManager !== 'undefined') {
+                AdManager.showInterstitialAd(proceed);
+            } else {
+                proceed();
+            }
+        } else {
+            proceed();
         }
     }
     function levelUpCareer() {
@@ -8709,30 +8735,59 @@ function startSingle() {
 
 
     // --- OYUN HAKKINDA METNİ YÖNETİMİ ---
-    function saveAboutText() {
-        const txt = document.getElementById('adminAboutInput').value;
-        if (!txt) return showToast("Boş olamaz!");
+    const FIXED_ABOUT_TEXT = `
+    <div style="text-align:left; line-height:1.6; font-size:0.9rem;">
+        <h3 style="color:#6c5ce7;">🎮 OYUN MODLARI</h3>
 
-        db.ref('settings/aboutText').set(txt)
-            .then(() => showToast("✅ Metin Kaydedildi!"))
-            .catch(e => showToast("Hata: " + e.message));
+        <b style="color:#d35400;">🔢 SAYI OYUNU (Klasik)</b><br>
+        • Amacın rakibin gizli sayısını bulmak.<br>
+        • + (Artı): Rakam doğru ve yeri doğru.<br>
+        • - (Eksi): Rakam doğru ama yeri yanlış.<br>
+        • İlk bulan kazanır! (Online) veya süreni yarıştır (Speedrun).<br><br>
+
+        <b style="color:#8e44ad;">🇹🇷 KELİME OYUNU</b><br>
+        • Gizli kelimeyi tahmin et.<br>
+        • 🟩 YEŞİL: Harf var ve yeri doğru.<br>
+        • 🟨 SARI: Harf var ama yeri yanlış.<br>
+        • ⬜ GRİ: Harf yok.<br><br>
+
+        <h3 style="color:#0984e3;">🏆 KARİYER MODLARI</h3>
+        • <b>Sayı Kariyeri:</b> 5 Seviye. Zorluk artar (3-7 hane).<br>
+        • <b>Kelime Kariyeri:</b> 8 Seviye. 3 harften 10 harfe kadar uzanır.<br>
+        • Her seviyede 10 galibiyet alarak sandık ödülünü kap!<br><br>
+
+        <h3 style="color:#00b894;">🐾 EVCİL HAYVAN (PET)</h3>
+        • Lobide seninle gezer.<br>
+        • Besledikçe enerji dolar.<br>
+        • Enerjisi tamken oyun sonu bonusu verir!<br><br>
+
+        <h3 style="color:#e17055;">🤠 ÖDÜL AVCILARI</h3>
+        • İlan tahtasından zorlu bir sayı seç.<br>
+        • Giriş ücretini öde ve sayıyı bulmaya çalış.<br>
+        • Bulursan büyük ödülü kazanırsın!<br><br>
+
+        <h3 style="color:#2d3436;">🏰 KLANLAR</h3>
+        • Arkadaşlarınla klan kur veya katıl.<br>
+        • Klan etiketi isminin yanında görünür.<br>
+    </div>
+    `;
+
+    function saveAboutText() {
+        showToast("⚠️ Bu metin kod üzerinden kilitlendi, değiştirilemez.");
     }
 
     function loadAboutText() {
-        // İstemci tarafı: Metni çek ve göster
-        db.ref('settings/aboutText').once('value').then(snap => {
-            const txt = snap.val();
-            const container = document.getElementById('aboutContent');
-            if (container) {
-                container.innerHTML = txt || "Henüz bir açıklama metni girilmemiş.";
-            }
+        const container = document.getElementById('aboutContent');
+        if (container) {
+            container.innerHTML = FIXED_ABOUT_TEXT;
+        }
 
-            // Eğer Admin panelindeysek inputu da doldur
-            const input = document.getElementById('adminAboutInput');
-            if (input && input.offsetParent !== null) { // Görünürse
-                input.value = txt || "";
-            }
-        });
+        // Admin panel input (varsa)
+        const input = document.getElementById('adminAboutInput');
+        if (input && input.offsetParent !== null) {
+            input.value = "Metin kod içine kilitlendi (Güvenlik).";
+            input.disabled = true;
+        }
     }
 
     // --- ANDROID UYGULAMA İÇİN EKRAN YÖNÜ KİLİTLEME ---
@@ -9049,43 +9104,32 @@ function startSingle() {
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
-        // Logic to replay depends on mode.
-        // For single player:
 
-        // Word Game Replay
-        if (currentScreen === 'screen-word-game') {
-             // Restart with last config
-             // We stored config in wordGameState?
-             // wordGameState has length and mode.
-
-             // Re-run setup logic manually or extract `restartWordGame`?
-             // Let's modify `startWordGameCustom` to optionally take params?
-             // Or just set the DOM elements and call it?
-             // But DOM might have changed.
-
-             // Better: define `restartWordGame()` that uses `wordGameState` params.
-             restartWordGame();
-             return;
-        }
-
-        if (game.mode === 'single') {
-            startSingle(); // Restarts with last settings
-        } else if (game.mode === 'bounty') {
-            openBountyScreen(); // Go back to list
-        } else {
-            // Online or Career
-            closeModal('modal-end'); // Should not be open but just in case
-            // If career, maybe next level?
-            if (game.mode === 'career') {
-               openCareerMap();
-            } else {
-               // Online rematch logic is separate, usually handled by modal-end.
-               // But if we used piggy for online win, we need to show rematch options.
-               // For now, let's just go to lobby for simplicity or show the old end modal?
-               // The user wanted a "nice animation".
-               // Let's just go to lobby for now to be safe.
-               changeScreen('screen-lobby');
+        const proceed = () => {
+            if (currentScreen === 'screen-word-game') {
+                 restartWordGame();
+                 return;
             }
+            if (game.mode === 'single') {
+                startSingle();
+            } else if (game.mode === 'bounty') {
+                openBountyScreen();
+            } else if (game.mode === 'career') {
+                openCareerMap();
+            } else {
+                changeScreen('screen-lobby');
+            }
+        };
+
+        if (window.pendingAd) {
+            window.pendingAd = false;
+            if (typeof AdManager !== 'undefined') {
+                AdManager.showInterstitialAd(proceed);
+            } else {
+                proceed();
+            }
+        } else {
+            proceed();
         }
     }
 
@@ -9095,7 +9139,24 @@ function startSingle() {
             overlay.classList.remove('show');
             setTimeout(() => { overlay.style.display = 'none'; }, 500);
         }
-        changeScreen('screen-lobby');
+
+        const proceed = () => {
+            changeScreen('screen-lobby');
+        };
+
+        // Reklam kontrolü (Çıkışta da olsa iyi olur, ama kullanıcı 'tekrar oyna' dedi. Biz yine de çıkışa da koyalım mı?
+        // User said: "reklam yüklendikten sonra tekrar oyna butonuna basıldıktan sonra reklam yüklensin"
+        // He emphasized Replay. But usually Exit triggers ad too. I'll add it to Exit as well for consistency.
+        if (window.pendingAd) {
+            window.pendingAd = false;
+            if (typeof AdManager !== 'undefined') {
+                AdManager.showInterstitialAd(proceed);
+            } else {
+                proceed();
+            }
+        } else {
+            proceed();
+        }
     }
 
     function playCpuTurn() {
@@ -9823,17 +9884,27 @@ function restartWordGame() {
             }
         }
 
+        // Check Ad Status but DO NOT SHOW YET
+        checkWordGameAd(true);
+
+        // Show Buttons on Overlay after delay
         setTimeout(() => {
-            changeScreen('screen-lobby');
-            checkWordGameAd();
-        }, 4000);
+             const btns = document.getElementById('piggyButtons');
+             if(btns) {
+                 btns.style.display = 'flex';
+                 btns.style.animation = 'slideUp 0.5s ease';
+             }
+        }, 2000);
     }
 
-    function checkWordGameAd() {
+    function checkWordGameAd(flagOnly) {
         wordGameAdCounter++;
         // 4 oyunda bir
         if (wordGameAdCounter % 4 === 0) {
-            AdManager.showInterstitialAd();
+            window.pendingAd = true;
+            if (!flagOnly && typeof AdManager !== 'undefined') {
+                AdManager.showInterstitialAd();
+            }
         }
     }
 
