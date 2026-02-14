@@ -4517,6 +4517,12 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
     </div>
 </div>
 <script>
+    // SAFETY: Hide loading screen immediately (Backup)
+    setTimeout(() => {
+        const l = document.getElementById('loading');
+        if (l) l.style.display = 'none';
+    }, 2500);
+
     window.onerror = function (msg, url, line) {
         const el = document.getElementById('errorLog');
         if (el) el.innerText = "Hata: " + msg;
@@ -7696,7 +7702,7 @@ function startSingle() {
             }
         });
     }
-    window.addEventListener('popstate', e => { history.pushState(null, null, location.href); const m = document.querySelectorAll('.modal-overlay'); let c = false; m.forEach(x => { if (x.style.display === 'flex') { x.style.display = 'none'; c = true; } }); if (c) return; if (game.active || currentScreen === 'screen-wait' || currentScreen === 'screen-game') { attemptExit(); } else if (currentScreen === 'screen-admin') { changeScreen('screen-lobby'); } else { showModal('modal-exit-confirm'); } }); history.pushState(null, null, location.href);
+    window.addEventListener('popstate', e => { history.pushState(null, null, location.href); const m = document.querySelectorAll('.modal-overlay'); let c = false; m.forEach(x => { if (x.style.display === 'flex') { x.style.display = 'none'; c = true; } }); if (c) return; if (game.active || currentScreen === 'screen-wait' || currentScreen === 'screen-game') { attemptExit(); } else if (currentScreen === 'screen-admin') { changeScreen('screen-lobby'); } else { showModal('modal-exit-confirm'); } });
     // --- YENİ KOLEKSİYON & SOHBET MANTIĞI ---
 
 
