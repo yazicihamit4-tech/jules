@@ -4932,17 +4932,22 @@ const THEMES = [
 
         gamesPlayed: 0,
         pendingRewardCallback: null,
+        initialized: false,
 
         // 1. Initialize Native Ad in Lobby
         init: function() {
+            if (this.initialized) return;
+
             if (window.yaContextCb) {
+                this.initialized = true;
                 window.yaContextCb.push(() => {
                     Ya.Context.AdvManager.render({
                         "blockId": this.nativeId,
                         "renderTo": "yandex_rtb_R-M-18543851-3"
                     });
                 });
-                document.getElementById('bannerAdContainer').style.display = 'flex';
+                const bannerDiv = document.getElementById('bannerAdContainer');
+                if (bannerDiv) bannerDiv.style.display = 'flex';
             }
         },
 
@@ -5324,6 +5329,9 @@ const THEMES = [
     function confirmLogout() { if (confirm("Çıkış?")) { localStorage.clear(); location.reload(); } }
 
     function updateLobbyUI() {
+        // REKLAM SİSTEMİ BAŞLAT (Native)
+        if (typeof AdManager !== 'undefined') AdManager.init();
+
         // PET SİSTEMİ BAŞLAT (Eğer başlamadıysa)
         if (typeof PetSystem !== 'undefined') PetSystem.init();
 
