@@ -3501,8 +3501,7 @@ button:active {
                     <div style="line-height:1.1;">
                         <div id="lobbyName" style="font-weight:bold; font-size:0.95rem; color:#2d3436;">Kullanıcı</div>
                         <div style="font-size:0.65rem; color:#888; font-weight:600;">
-                            Lv. <span id="userLevelDisplay">1</span> <span id="lobbyClanTag"
-                                style="color:#e17055;"></span>
+                            Lv. <span id="userLevelDisplay">1</span>
                         </div>
                     </div>
                 </div>
@@ -3971,7 +3970,6 @@ button:active {
                 </div>
                 <h2 id="pName" style="margin: 10px 0 5px 0; color: #2d3436;">Kullanıcı</h2>
                 <div id="pBadges" style="margin-bottom: 5px;"></div>
-                <div id="pClan" style="font-size: 0.8rem; color: #e17055; font-weight: bold;">Klan Yok</div>
             </div>
 
             <div class="profile-stats-grid">
@@ -4374,14 +4372,11 @@ button:active {
     </div>
     <div id="modal-more" class="modal-overlay">
         <div class="modal-box">
-            <h3>🍔 Diğer</h3><button class="btn-dark" onclick="openClanModal()">🛡️ Klanım</button><button
+            <h3>🍔 Diğer</h3><button
                 class="btn-dark" onclick="openPetModalSafe()">🐾 Evcil Hayvanlar</button><button class="btn-gold"
-                onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-purple"
-                onclick="showModal('modal-rules')">📜 Kurallar</button><button class="btn-blue"
-                onclick="showModal('modal-promo')">🎟️ Kupon Gir</button><button class="btn-dark"
+                onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-dark"
                 onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-dark"
-                onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-blue"
-                onclick="showModal('modal-about')">ℹ️ Oyun Hakkında</button><button class="btn-red"
+                onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-red"
                 style="margin-top:15px;" onclick="confirmLogout()">ÇIKIŞ YAP</button><button class="btn-grey"
                 onclick="closeModal('modal-more')">KAPAT</button>
         </div>
@@ -4404,16 +4399,6 @@ button:active {
             <h3>Avatar Seç</h3>
             <div class="avatar-wrapper" id="changeAvatarList"></div><button onclick="closeModal('modal-avatar-change')"
                 class="btn-red" style="margin-top:10px;">İPTAL</button>
-        </div>
-    </div>
-    <div id="modal-about" class="modal-overlay">
-        <div class="modal-box">
-            <h3>ℹ️ Oyun Hakkında</h3>
-            <div id="aboutContent"
-                style="min-height:100px; max-height:300px; overflow-y:auto; text-align:left; padding:10px; background:#f4f4f4; border-radius:10px; margin-bottom:10px;">
-                Yükleniyor...
-            </div>
-            <button onclick="closeModal('modal-about')" class="btn-dark">KAPAT</button>
         </div>
     </div>
     <div id="modal-career-info" class="modal-overlay">
@@ -4478,90 +4463,11 @@ button:active {
             <button onclick="closeModal('modal-career')" class="btn-grey" style="margin: 10px;">KAPAT</button>
         </div>
     </div>
-    <div id="modal-clan" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🛡️ Klan</h3>
-            <div id="clanCreateArea">
-                <p>1000 Altın karşılığı klan kur!</p><input type="text" id="clanNameInput"
-                    placeholder="Klan Adı"><button class="btn-blue" onclick="createClan()">KUR</button>
-            </div>
-            <div id="clanInfoArea" style="display:none;">
-                <h2 id="myClanName">...</h2>
-                <p>Üyesisin.</p><button class="btn-red" onclick="leaveClan()">AYRIL</button>
-            </div><button onclick="closeModal('modal-clan')" class="btn-dark">KAPAT</button>
-        </div>
-    </div>
-    <div id="modal-promo" class="modal-overlay">
-        <div class="modal-box">
-            <h3>🎟️ Kupon</h3><input id="promoInput"><button onclick="redeemCode()"
-                class="btn-green">KULLAN</button><button onclick="closeModal('modal-promo')"
-                class="btn-red">İPTAL</button>
-        </div>
-    </div>
     <div id="modal-contact" class="modal-overlay">
         <div class="modal-box">
             <h3>📨 İletişim</h3><textarea id="adminMsgInput"></textarea><button onclick="sendAdminMessage()"
                 class="btn-blue">GÖNDER</button><button onclick="closeModal('modal-contact')"
                 class="btn-red">İPTAL</button>
-        </div>
-    </div>
-    <div id="modal-rules" class="modal-overlay">
-        <div class="modal-box" style="text-align:center; max-width:400px; padding:25px; border-radius:25px;">
-
-            <h3
-                style="color:#3498db; margin:0 0 5px 0; font-size:1.3rem; display:flex; align-items:center; justify-content:center; gap:8px;">
-                🧠 OYUN MANTIĞI
-            </h3>
-            <div style="width:100%; height:2px; background:#eee; margin:10px auto 20px auto; border-radius:2px;"></div>
-
-            <p style="font-size:0.95rem; color:#333; line-height:1.5; margin-bottom:20px; font-weight:500;">
-                Sistem, rakamları birbirinden farklı (Örn: 1234) gizli bir sayı tutar.<br>
-                Amacın bu sayıyı ipuçlarıyla bulmak!
-            </p>
-
-            <div
-                style="background:#f1f2f6; border-radius:15px; padding:15px; margin-bottom:20px; text-align:left; box-shadow:inset 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="text-align:center; margin-bottom:15px;">
-                    <b style="color:#333; font-size:0.9rem;">ÖRNEK SENARYO</b>
-                    <div
-                        style="margin-top:5px; font-size:1.1rem; display:flex; align-items:center; justify-content:center; gap:10px;">
-                        Gizli Sayı: <span
-                            style="background:#333; color:#fff; padding:4px 10px; border-radius:6px; letter-spacing:3px; font-weight:bold;">1234</span>
-                    </div>
-                </div>
-
-                <div
-                    style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:1rem; color:#333;">Tahmin: <b style="color:#3498db">1</b>760</div>
-                        <div style="font-size:0.7rem; color:#888;">(1 rakamı var ve yeri DOĞRU)</div>
-                    </div>
-                    <div style="font-weight:bold; font-size:1.1rem; color:#2ecc71;">+1 -0</div>
-                </div>
-
-                <div
-                    style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:1rem; color:#333;">Tahmin: 9<b style="color:#3498db">1</b>87</div>
-                        <div style="font-size:0.7rem; color:#888;">(1 rakamı var ama yeri YANLIŞ)</div>
-                    </div>
-                    <div style="font-weight:bold; font-size:1.1rem; color:#e74c3c;">+0 -1</div>
-                </div>
-
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:1rem; color:#333;">Tahmin: <b style="color:#2ecc71">12</b>43</div>
-                        <div style="font-size:0.7rem; color:#888;">(1 ve 2 Tam Yerinde, 4 ve 3 Ters)</div>
-                    </div>
-                    <div style="font-weight:bold; font-size:1.1rem;"><span style="color:#2ecc71">+2</span> / <span
-                            style="color:#e74c3c">-2</span></div>
-                </div>
-            </div>
-
-            <button onclick="closeModal('modal-rules')" class="btn-red"
-                style="width:100%; padding:15px; border-radius:30px; font-size:1rem; font-weight:bold; background:#e74c3c; box-shadow:0 4px 10px rgba(231, 76, 60, 0.4);">TAMAM,
-                ANLADIM</button>
-
         </div>
     </div>
     <div id="modal-vault" class="modal-overlay">
@@ -4856,12 +4762,6 @@ Offline</button><button id="btnFilterNew" class="btn-blue" style="flex:1;padding
 <div class="admin-section">
     <h3>📢 Şikayet & Bildirimler</h3>
     <div id="adminReportList" class="list-container" style="max-height:200px;">Yükleniyor...</div>
-</div>
-<div class="admin-section">
-    <h3>🎟️ Kupon</h3>
-    <div style="display:flex;gap:5px;"><input id="newPromoCode" placeholder="Kod"><input id="newPromoLimit"
-            placeholder="Lmt" style="width:50px;"><input id="newPromoReward" placeholder="Altın" style="width:50px;">
-    </div><button class="btn-green" onclick="createPromo()">OLUŞTUR</button>
 </div>
 <div class="admin-section">
     <h3>📢 Duyuru</h3><input id="broadcastInput"><button class="btn-gold" onclick="sendBroadcast()">GÖNDER</button>
@@ -5423,7 +5323,6 @@ const THEMES = [
     }
     function showModal(id) {
         document.getElementById(id).style.display = 'flex';
-        if (id === 'modal-about') loadAboutText();
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function generateNumber(l) { let n = []; while (n.length < l) { let r = Math.floor(Math.random() * 10); if (n.length === 0 && r === 0) continue; if (!n.includes(r)) n.push(r); } return n.join(""); }
@@ -5458,8 +5357,6 @@ const THEMES = [
         else if (ads >= 50) badgesHTML += '<span class="badge-icon badge-ad" title="Yönetmen (50+)">🎬</span>';
         else if (ads >= 10) badgesHTML += '<span class="badge-icon badge-ad" title="İzleyici (10+)">📺</span>';
 
-        // C. Klan Rozeti
-        if (user.clan) badgesHTML += '<span class="badge-icon" style="border-color:#e74c3c; color:#e74c3c;" title="Klan Üyesi">🛡️</span>';
         badgesHTML += '</span>';
 
         // 3. Bilgileri Ekrana Bas
@@ -5478,7 +5375,6 @@ const THEMES = [
         // ---------------------------------------------
 
         document.getElementById('lobbyGold').innerText = user.gold;
-        document.getElementById('lobbyClanTag').innerText = user.clan ? "[" + user.clan + "]" : "";
 
         // 4. XP ve Diğerleri
         const xpNeeded = 500;
@@ -7696,11 +7592,6 @@ function startSingle() {
         listenRoom(c);
     }
     function joinRoom(c) { c = c.toString().trim(); if (c.length < 5) return showToast("Kod Hatalı"); if (user.gold < 50) return showToast("50 Altın Gerek"); db.ref('rooms/' + c).once('value').then(s => { const r = s.val(); if (!r) return showToast("Oda Yok"); if (r.status !== "waiting") return showToast("Oda Dolu"); updateGold(-50); game.room = c; game.role = "p2"; game.diff = r.config.diff; game.type = r.config.type; game.mode = "online"; game.playStyle = r.config.playStyle; game.duration = r.config.duration; game.secret = r.secret; db.ref('rooms/' + c).update({ p2: { name: user.name, avatar: user.avatar }, status: "playing", startTime: Date.now() }); db.ref('rooms/' + c).onDisconnect().update({ winner: 'p1', endReason: 'abandoned' }); closeModal('modal-setup'); listenRoom(c); }); }
-    function createPromo() { db.ref(`promo_codes/${document.getElementById('newPromoCode').value}`).set({ limit: parseInt(document.getElementById('newPromoLimit').value), reward: parseInt(document.getElementById('newPromoReward').value), used: 0 }); showToast("Kupon Hazır"); }
-    function redeemCode() { const c = document.getElementById('promoInput').value.toUpperCase(); db.ref(`promo_codes/${c}`).once('value').then(s => { const p = s.val(); if (!p || p.used >= p.limit) return showToast("Geçersiz"); db.ref(`users/${user.name}/used_codes/${c}`).once('value').then(u => { if (u.exists()) return showToast("Kullanıldı"); db.ref(`promo_codes/${c}/used`).transaction(x => (x || 0) + 1); db.ref(`users/${user.name}/used_codes/${c}`).set(true); updateGold(p.reward); showToast("Kazanıldı!"); AudioEngine.win(); closeModal('modal-promo'); }); }); }
-    function openClanModal() { showModal('modal-clan'); if (user.clan) { document.getElementById('clanCreateArea').style.display = 'none'; document.getElementById('clanInfoArea').style.display = 'block'; document.getElementById('myClanName').innerText = user.clan; } else { document.getElementById('clanCreateArea').style.display = 'block'; document.getElementById('clanInfoArea').style.display = 'none'; } }
-    function createClan() { const n = document.getElementById('clanNameInput').value.trim().toUpperCase(); if (user.gold < 1000) return showToast("1000 Altın"); db.ref('clans/' + n).once('value').then(s => { if (s.exists()) return showToast("Dolu"); updateGold(-1000); db.ref('clans/' + n).set({ leader: user.name }); db.ref('users/' + user.name + '/clan').set(n); user.clan = n; showToast("Kuruldu"); openClanModal(); }); }
-    function leaveClan() { if (confirm("Ayrıl?")) { db.ref(`users/${user.name}/clan`).remove(); user.clan = ""; showToast("Ayrıldın"); openClanModal(); } }
     function saveScore(s) { db.ref('users/' + user.name + '/totalScore').transaction(c => (c || 0) + s); db.ref('scores').push({ user: user.name, score: s, timestamp: Date.now() }); }
     function sendEmoji(emoji) { if (!game.room) return; showEmojiAnim(emoji, true); db.ref('rooms/' + game.room + '/emojis').push({ e: emoji, t: Date.now() }); }
     function showEmojiAnim(emoji, isSelf) { const el = document.createElement('div'); el.className = 'floating-emoji'; el.innerText = emoji; el.style.left = (20 + Math.random() * 60) + '%'; document.getElementById('emojiLayer').appendChild(el); setTimeout(() => el.remove(), 3000); }
@@ -8177,7 +8068,6 @@ function startSingle() {
 
             document.getElementById('pLevel').innerText = data.level || 1;
             document.getElementById('pGold').innerText = data.gold || 0;
-            document.getElementById('pClan').innerText = data.clan ? "[" + data.clan + "] Üyesi" : "Klan Yok";
 
             // 2. İstatistikler
             let totalWins = 0;
@@ -9100,32 +8990,6 @@ function startSingle() {
 
 
 
-    // --- OYUN HAKKINDA METNİ YÖNETİMİ ---
-    function saveAboutText() {
-        const txt = document.getElementById('adminAboutInput').value;
-        if (!txt) return showToast("Boş olamaz!");
-
-        db.ref('settings/aboutText').set(txt)
-            .then(() => showToast("✅ Metin Kaydedildi!"))
-            .catch(e => showToast("Hata: " + e.message));
-    }
-
-    function loadAboutText() {
-        // İstemci tarafı: Metni çek ve göster
-        db.ref('settings/aboutText').once('value').then(snap => {
-            const txt = snap.val();
-            const container = document.getElementById('aboutContent');
-            if (container) {
-                container.innerHTML = txt || "Henüz bir açıklama metni girilmemiş.";
-            }
-
-            // Eğer Admin panelindeysek inputu da doldur
-            const input = document.getElementById('adminAboutInput');
-            if (input && input.offsetParent !== null) { // Görünürse
-                input.value = txt || "";
-            }
-        });
-    }
 
     // --- ANDROID UYGULAMA İÇİN EKRAN YÖNÜ KİLİTLEME ---
     window.addEventListener('load', () => {
