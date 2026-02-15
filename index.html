@@ -19,6 +19,9 @@
 </script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js">
 </script>
+    <!-- Yandex RTB / Ads SDK -->
+    <script>window.yaContextCb=window.yaContextCb||[]</script>
+    <script src="https://yandex.ru/ads/system/context.js" async></script>
     <style>
         :root {
             --bg: #f0f2f5;
@@ -3483,6 +3486,8 @@ button:active {
         <!-- Banner Ad Container -->
         <div id="bannerAdContainer"
             style="width:100%; min-height:60px; display:none; justify-content:center; align-items:center; background:rgba(0,0,0,0.02); margin-bottom:20px; border-top: 1px solid #eee; padding-top: 10px;">
+            <!-- Yandex Native Ad -->
+            <div id="yandex_rtb_R-M-18543851-3"></div>
         </div>
 
         <div id="marqueeArea">
@@ -4375,7 +4380,8 @@ button:active {
             <h3>🍔 Diğer</h3><button
                 class="btn-dark" onclick="openPetModalSafe()">🐾 Evcil Hayvanlar</button><button class="btn-gold"
                 onclick="openVaultModal()">🔐 Günlük Kasa</button><button class="btn-dark"
-                onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-dark"
+                onclick="openAvatarChange()">😎 Avatar Değiştir</button><button class="btn-blue"
+                onclick="showModal('modal-features')">⭐ Oyun Özellikleri</button><button class="btn-dark"
                 onclick="showModal('modal-contact')">📨 İletişim</button><button class="btn-red"
                 style="margin-top:15px;" onclick="confirmLogout()">ÇIKIŞ YAP</button><button class="btn-grey"
                 onclick="closeModal('modal-more')">KAPAT</button>
@@ -4399,6 +4405,35 @@ button:active {
             <h3>Avatar Seç</h3>
             <div class="avatar-wrapper" id="changeAvatarList"></div><button onclick="closeModal('modal-avatar-change')"
                 class="btn-red" style="margin-top:10px;">İPTAL</button>
+        </div>
+    </div>
+    <div id="modal-features" class="modal-overlay">
+        <div class="modal-box" style="text-align:left; max-height:80vh; overflow-y:auto;">
+            <h3 style="text-align:center; color:#6c5ce7;">⭐ OYUN ÖZELLİKLERİ</h3>
+            <div style="padding:10px; font-size:0.9rem; color:#333;">
+                <div style="background:#f0f8ff; padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <b style="color:#3498db;">🎮 Oyun Modları</b><br>
+                    • <b>Sayı Bulmaca:</b> Gizli sayıyı tahmin et.<br>
+                    • <b>Kelime Hazinesi:</b> Gizli kelimeyi harflerden bul.
+                </div>
+                <div style="background:#fff3cd; padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <b style="color:#f1c40f;">🌍 Online Düello</b><br>
+                    Gerçek oyuncularla eşleş, hızlı olan kazansın! Puanları topla ve ligde yüksel.
+                </div>
+                <div style="background:#e8f5e9; padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <b style="color:#2ecc71;">🗺️ Kariyer & Macera</b><br>
+                    Harita üzerinde ilerle, zorlu seviyeleri geç ve özel ödül sandıklarını topla.
+                </div>
+                <div style="background:#fce4ec; padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <b style="color:#e91e63;">🐾 Evcil Hayvanlar (Pet)</b><br>
+                    Sana şans getiren tatlı dostlar! Onları besle, sev ve oyunlarda yanına al.
+                </div>
+                <div style="background:#f3e5f5; padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <b style="color:#9c27b0;">🤠 Ödül Avcıları</b><br>
+                    Diğer oyuncuların belirlediği zorlu şifreleri çöz, büyük altın ödülünü kap!
+                </div>
+            </div>
+            <button onclick="closeModal('modal-features')" class="btn-dark">HARİKA!</button>
         </div>
     </div>
     <div id="modal-career-info" class="modal-overlay">
@@ -4580,11 +4615,16 @@ button:active {
             </div>
             <div id="coinDropLayer" class="coin-drop-layer"></div>
             <!-- BUTONLAR -->
-            <div id="piggyButtons" style="display:none; margin-top:25px; gap:10px; justify-content:center;">
-                <button class="btn-green" onclick="closePiggyAndReplay()" style="padding:15px 25px; font-size:1rem;">🔄
-                    TEKRAR OYNA</button>
-                <button class="btn-red" onclick="closePiggyAndExit()" style="padding:15px 25px; font-size:1rem;">🚪
-                    ÇIKIŞ</button>
+            <div id="piggyButtons" style="display:none; flex-direction:column; margin-top:25px; gap:10px; align-items:center;">
+                <!-- 2x AD BUTTON -->
+                <button id="btnDoublePrize" class="btn-gold" onclick="AdManager.showRewardedAd(doublePrize)" style="width:100%; padding:15px; font-size:1rem; animation:pulse-active 1.5s infinite;">
+                    📺 REKLAM İZLE: 2X ÖDÜL KAZAN
+                </button>
+
+                <div style="display:flex; gap:10px; width:100%; justify-content:center;">
+                    <button class="btn-green" onclick="closePiggyAndReplay()" style="flex:1; padding:12px; font-size:0.9rem;">🔄 TEKRAR</button>
+                    <button class="btn-red" onclick="closePiggyAndExit()" style="flex:1; padding:12px; font-size:0.9rem;">🚪 ÇIKIŞ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -4879,143 +4919,93 @@ const THEMES = [
 
 
 
+    // REAL YANDEX AD MANAGER (NO SIMULATION)
     const AdManager = {
-        pendingCallback: null,
-        mockRunning: false, // Prevent concurrent mocks
+        // IDs
+        rewardedId: "R-M-18543851-1",
+        rewardedBackupId: "R-M-18543851-5",
 
-        // Ad Configuration
-        appId: "ca-app-pub-5879474591831999~1348513678",
+        interstitialId: "R-M-18543851-2",
+        interstitialBackupId: "R-M-18543851-4",
 
-        // AdMob Units
-        admobRewardedIds: [
-            "ca-app-pub-5879474591831999/1499369487",
-            "ca-app-pub-5879474591831999/4862883127"
-        ],
-        admobInterstitialId: "ca-app-pub-5879474591831999/9656400021",
+        nativeId: "R-M-18543851-3",
 
-        // Yandex Units
-        yandexRewardedId: "R-M-18543851-1",
-        yandexInterstitialId: "R-M-18543851-2",
+        gamesPlayed: 0,
+        pendingRewardCallback: null,
 
-        isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
-
-        // Helper to pick a random unit ID from available networks
-        pickRewardedUnitId: function() {
-            const pool = [...this.admobRewardedIds, this.yandexRewardedId];
-            return pool[Math.floor(Math.random() * pool.length)];
-        },
-
-        pickInterstitialUnitId: function() {
-            return Math.random() > 0.5 ? this.admobInterstitialId : this.yandexInterstitialId;
-        },
-
-        showRewardedAd: function (onSuccess) {
-            this.pendingCallback = onSuccess;
-            try {
-                if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                    this.runWebMock();
-                    return;
-                }
-
-                if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                    this.runWebMock();
-                    return;
-                }
-
-                if (this.isAndroid()) {
-                    const adUnitId = this.pickRewardedUnitId();
-                    try {
-                        if (typeof window.Android.showRewardedAd === 'function') {
-                            window.Android.showRewardedAd(adUnitId);
-                        } else if (typeof window.Android.showAd === 'function') {
-                            window.Android.showAd(adUnitId);
-                        } else {
-                            this.runWebMock();
-                        }
-                    } catch(e) { this.runWebMock(); }
-                } else {
-                    this.runWebMock();
-                }
-            } catch (err) { closeModal('modal-ad-watch'); }
-        },
-
-        showInterstitialAd: function () {
-            // Check for mock active to prevent double overlay
-            if (this.mockRunning) return;
-
-            try {
-                if (typeof FORCE_AD_SIMULATOR !== 'undefined' && FORCE_AD_SIMULATOR) {
-                    this.runWebMock(true);
-                    return;
-                }
-
-                if (typeof ADMIN_NAMES !== 'undefined' && user && ADMIN_NAMES.includes(user.name)) {
-                    this.runWebMock(true);
-                    return;
-                }
-
-                if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
-                    const adUnitId = this.pickInterstitialUnitId();
-                    try {
-                        window.Android.showInterstitial(adUnitId);
-                    } catch(e) {
-                        console.error("Native Interstitial Failed:", e);
-                        this.runWebMock(true); // Fallback
-                    }
-                } else {
-                    this.runWebMock(true);
-                }
-            } catch(e) {
-                console.error("Interstitial Error:", e);
+        // 1. Initialize Native Ad in Lobby
+        init: function() {
+            if (window.yaContextCb) {
+                window.yaContextCb.push(() => {
+                    Ya.Context.AdvManager.render({
+                        "blockId": this.nativeId,
+                        "renderTo": "yandex_rtb_R-M-18543851-3"
+                    });
+                });
+                document.getElementById('bannerAdContainer').style.display = 'flex';
             }
         },
 
-        runWebMock: function (isInterstitial = false) {
-            if (this.mockRunning) return;
-            this.mockRunning = true;
+        // 2. Interstitial Ad (Every 3 games)
+        checkInterstitial: function() {
+            this.gamesPlayed++;
+            if (this.gamesPlayed % 3 === 0) {
+                this.showInterstitialAd();
+            }
+        },
 
-            showModal('modal-ad-watch');
-            const modalBody = document.querySelector('#modal-ad-watch .modal-box');
-            if(!modalBody) { this.mockRunning = false; return; }
+        showInterstitialAd: function(useBackup = false) {
+            const id = useBackup ? this.interstitialBackupId : this.interstitialId;
 
-            // Save original content (but ensure we don't save a modified state)
-            if (!this.originalMockContent) this.originalMockContent = modalBody.innerHTML;
-
-            // Reset content just in case
-            modalBody.innerHTML = this.originalMockContent;
-
-            let timeLeft = 3;
-            const pLabel = modalBody.querySelector('p');
-            if(pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                if (pLabel) pLabel.innerText = "Reklam simülasyonu: " + timeLeft + "s";
-
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    this.mockRunning = false;
-
-                    // Restore and Close
-                    modalBody.innerHTML = this.originalMockContent;
-                    closeModal('modal-ad-watch');
-
-                    if (!isInterstitial && this.pendingCallback) {
-                        this.pendingCallback();
-                        this.pendingCallback = null;
+            if (typeof Ya !== 'undefined' && Ya.Context) {
+                Ya.Context.AdvManager.render({
+                    blockId: id,
+                    type: 'fullscreen',
+                    platform: 'touch',
+                    onRender: () => { console.log('Interstitial rendered'); },
+                    onError: (data) => {
+                        console.log('Interstitial error:', data);
+                        if (!useBackup) {
+                            this.showInterstitialAd(true); // Try backup
+                        }
                     }
-                }
-            }, 1000);
+                });
+            } else {
+                console.log("Yandex SDK not loaded for Interstitial.");
+            }
+        },
 
-            // Safety timeout: Close after 5s no matter what
-            setTimeout(() => {
-                if(this.mockRunning) {
-                    clearInterval(interval);
-                    this.mockRunning = false;
-                    modalBody.innerHTML = this.originalMockContent;
-                    closeModal('modal-ad-watch');
-                }
-            }, 5000);
+        // 3. Rewarded Ad (Double Gold)
+        showRewardedAd: function(onSuccess, useBackup = false) {
+            this.pendingRewardCallback = onSuccess;
+            const id = useBackup ? this.rewardedBackupId : this.rewardedId;
+
+            if (typeof Ya !== 'undefined' && Ya.Context) {
+                Ya.Context.AdvManager.render({
+                    blockId: id,
+                    type: 'rewarded',
+                    platform: 'touch',
+                    onRender: () => { console.log('Rewarded rendered'); },
+                    onReward: (data) => {
+                        console.log('Reward granted:', data);
+                        if (this.pendingRewardCallback) {
+                            this.pendingRewardCallback();
+                            this.pendingRewardCallback = null;
+                        }
+                    },
+                    onClose: () => { console.log('Rewarded closed'); },
+                    onError: (data) => {
+                        console.log('Rewarded error:', data);
+                        if (!useBackup) {
+                            this.showRewardedAd(onSuccess, true); // Try backup
+                        } else {
+                            alert("Reklam yüklenemedi. Lütfen internet bağlantınızı kontrol edin.");
+                        }
+                    }
+                });
+            } else {
+                alert("Reklam sistemi hazır değil.");
+            }
         }
     };
 
@@ -5922,6 +5912,30 @@ const THEMES = [
     }
 
 
+    // --- DOUBLE PRIZE LOGIC ---
+    let lastWinAmount = 0; // Store last win amount for doubling
+
+    function doublePrize() {
+        if (lastWinAmount <= 0) return;
+
+        updateGold(lastWinAmount); // Add same amount again (Double)
+        lastWinAmount = 0; // Reset
+
+        // Disable button visually
+        const btn = document.getElementById('btnDoublePrize');
+        if(btn) {
+            btn.innerHTML = "✅ KAZANDIN! (2X)";
+            btn.disabled = true;
+            btn.classList.remove('btn-gold');
+            btn.classList.add('btn-green');
+            btn.style.animation = 'none';
+        }
+
+        showToast("💰 ÖDÜL İKİYE KATLANDI!");
+        AudioEngine.win();
+        safeConfetti();
+    }
+
     // Piggy overlay kapatma ve tekrar oynama
     function closePiggyAndReplay() {
         const overlay = document.getElementById('piggyWinOverlay');
@@ -5933,6 +5947,16 @@ const THEMES = [
         if (coinLayer) coinLayer.innerHTML = '';
         if (fillBar) fillBar.style.width = '0%';
         if (btns) btns.style.display = 'none';
+
+        // Reset Button State
+        const btn = document.getElementById('btnDoublePrize');
+        if(btn) {
+            btn.innerHTML = "📺 REKLAM İZLE: 2X ÖDÜL KAZAN";
+            btn.disabled = false;
+            btn.classList.remove('btn-green');
+            btn.classList.add('btn-gold');
+            btn.style.animation = 'pulse-active 1.5s infinite';
+        }
 
         // Tekrar oyna
         requestRematch();
@@ -5949,6 +5973,16 @@ const THEMES = [
         if (coinLayer) coinLayer.innerHTML = '';
         if (fillBar) fillBar.style.width = '0%';
         if (btns) btns.style.display = 'none';
+
+        // Reset Button State
+        const btn = document.getElementById('btnDoublePrize');
+        if(btn) {
+            btn.innerHTML = "📺 REKLAM İZLE: 2X ÖDÜL KAZAN";
+            btn.disabled = false;
+            btn.classList.remove('btn-green');
+            btn.classList.add('btn-gold');
+            btn.style.animation = 'pulse-active 1.5s infinite';
+        }
 
         // Lobiye dön
         leaveRoom();
@@ -7036,8 +7070,9 @@ if (game.isPvc && game.active) {
             safeConfetti(); // Trigger gold animation if amount > 0
             if (amount > 0) {
                 animateGoldChange(amount);
+                lastWinAmount = amount; // Store for doubling
             } else {
-                // Klasik modda sandık kazanma şansı
+                lastWinAmount = 0;
             }
 
             // Show piggy bank overlay instead of modal
@@ -7116,19 +7151,12 @@ if (game.isPvc && game.active) {
             console.error("Kariyer ilerleme hatası:", e);
         }
 
-        // 4. REKLAM MANTIĞI (GECİKMELİ YAPILDI)
+        // 4. INTERSTITIAL AD (Her 3 oyunda bir)
         try {
-            gamesPlayedCount++;
-            // Her 2 oyunda bir reklam göster (Çift sayılarda)
-            if (gamesPlayedCount % 2 === 0) {
-                // BURASI DEĞİŞTİ: 1500ms (1.5 saniye) bekleyip öyle reklamı açıyor
-                setTimeout(() => {
-                    AdManager.showInterstitialAd();
-                }, 1500);
-            }
-        } catch (e) {
-            console.error("Reklam hatası:", e);
-        }
+            setTimeout(() => {
+                AdManager.checkInterstitial();
+            }, 1000);
+        } catch (e) { console.error("Ad Check Error:", e); }
     }
 
     function updateGameInterface(mode) {
@@ -10050,6 +10078,7 @@ function restartWordGame() {
         safeConfetti();
         const baseGold = wordGameState.length * 20; // 5 chars = 100 gold
         updateGold(baseGold);
+        lastWinAmount = baseGold; // Store for double prize
         showPiggyWin(baseGold);
 
         // Career Progression
