@@ -3047,6 +3047,131 @@ text-align: center;
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
 }
+
+/* --- 3D & EXCELLENT UI LOOK (Revamped) --- */
+
+/* 3D Cell */
+.word-cell {
+    background: linear-gradient(135deg, #ffffff, #f0f2f5) !important;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.7),
+                inset -2px -2px 5px rgba(0,0,0,0.1),
+                0 4px 6px rgba(0,0,0,0.2) !important;
+    border: 2px solid #fff !important;
+    border-radius: 12px !important;
+    font-size: 1.5rem !important;
+    font-weight: 800 !important;
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.5) !important;
+    transform: perspective(500px) rotateX(5deg) !important;
+    transition: transform 0.2s, background 0.3s !important;
+}
+
+.word-cell.filled {
+    transform: perspective(500px) rotateX(0deg) scale(1.05) !important;
+    border-color: var(--primary) !important;
+}
+
+.word-cell.correct {
+    background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+    color: white !important;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.4),
+                inset -2px -2px 5px rgba(0,0,0,0.2),
+                0 4px 10px rgba(46, 204, 113, 0.4) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+    border-color: #27ae60 !important;
+}
+
+.word-cell.present {
+    background: linear-gradient(135deg, #f1c40f, #f39c12) !important;
+    color: white !important;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.4),
+                inset -2px -2px 5px rgba(0,0,0,0.2),
+                0 4px 10px rgba(241, 196, 15, 0.4) !important;
+    border-color: #f39c12 !important;
+}
+
+.word-cell.absent {
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important;
+    color: white !important;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.2),
+                inset -2px -2px 5px rgba(0,0,0,0.2) !important;
+    border-color: #7f8c8d !important;
+}
+
+/* 3D History Bubbles (Number Game) */
+.his-me, .his-other {
+    background: linear-gradient(145deg, #ffffff, #e6e6e6) !important;
+    box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(255,255,255,0.5) !important;
+    transform: translateZ(0);
+    transition: transform 0.2s !important;
+    margin-bottom: 8px !important;
+}
+
+.his-me {
+    background: linear-gradient(145deg, #dcf8c6, #c5e1a5) !important;
+    box-shadow: 5px 5px 10px #b0c49e, -5px -5px 10px #ffffff !important;
+}
+
+.his-me:active, .his-other:active {
+    transform: scale(0.98);
+}
+
+/* 3D Buttons */
+button {
+    box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 10px 20px rgba(0,0,0,0.15) !important;
+    transition: all 0.1s !important;
+    position: relative;
+    top: 0;
+}
+
+button:active {
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2), 0 5px 10px rgba(0,0,0,0.1) !important;
+    top: 4px;
+}
+
+/* Special styling for Big 3D Buttons in Selection Modal */
+.btn-3d-huge {
+    width: 100%;
+    padding: 30px;
+    border-radius: 25px;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: white !important;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 4px solid rgba(255,255,255,0.3) !important;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+.btn-3d-huge.blue {
+    background: radial-gradient(circle at 30% 30%, #3498db, #2980b9);
+    box-shadow: 0 10px 0 #1f618d, 0 20px 30px rgba(41, 128, 185, 0.4);
+}
+
+.btn-3d-huge.purple {
+    background: radial-gradient(circle at 30% 30%, #9b59b6, #8e44ad);
+    box-shadow: 0 10px 0 #6c3483, 0 20px 30px rgba(142, 68, 173, 0.4);
+}
+
+.btn-3d-huge:active {
+    transform: translateY(10px);
+    box-shadow: 0 0 0 transparent, 0 5px 10px rgba(0,0,0,0.2);
+}
+
+/* Card Enhancement */
+.card, .modal-box {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.6) !important;
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(10px);
+}
 </style>
 </head>
 
@@ -3304,7 +3429,7 @@ text-align: center;
 
             <div class="play-container" style="margin-bottom: 20px;">
                 <div class="play-ring"></div>
-                <div class="play-btn-huge" onclick="safeOpenSetup()">
+                <div class="play-btn-huge" onclick="showModal('modal-game-select')">
                     <div class="play-content">
                         <div class="play-icon">▶</div>
                         <div class="play-text">BAŞLA</div>
@@ -3360,12 +3485,6 @@ text-align: center;
                 <div onclick="event.stopPropagation(); showModal('modal-bounty-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#0984e3; color:white; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5;">
                     ?
                 </div>
-            </div>
-            <div style="position:relative; width:100%; max-width:350px; margin-top:10px;">
-                <button class="btn-purple" style="width:100%; background:linear-gradient(135deg, #8e44ad, #9b59b6); border:1px solid #fff; color:white; text-shadow:0 1px 2px rgba(0,0,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" onclick="safeOpenWordSetup()">
-                    <span style="font-size:1.5rem;">🇹🇷</span> KELİME HAZİNESİ
-                </button>
-                <div onclick="event.stopPropagation(); showModal('modal-word-info');" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; background:#fff; color:#8e44ad; font-size:14px; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; z-index:5; box-shadow:0 2px 5px rgba(0,0,0,0.2);">?</div>
             </div>
 
 
@@ -3739,6 +3858,24 @@ text-align: center;
 
         </div>
     </div>
+    <!-- Game Selection Modal (New) -->
+    <div id="modal-game-select" class="modal-overlay" style="backdrop-filter: blur(10px);">
+        <div class="modal-box" style="padding: 20px; max-width: 400px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column;">
+            <h3 style="margin-top:0; color:#333; text-align:center;">OYUN SEÇ</h3>
+            <div style="display:flex; flex-direction:column; gap:15px; margin-top:20px;">
+                <div class="btn-3d-huge blue" onclick="closeModal('modal-game-select'); safeOpenSetup();">
+                    <span style="font-size:3rem;">🔢</span>
+                    <span>SAYI OYUNU</span>
+                </div>
+                <div class="btn-3d-huge purple" onclick="closeModal('modal-game-select'); safeOpenWordSetup();">
+                    <span style="font-size:3rem;">📝</span>
+                    <span>KELİME OYUNU</span>
+                </div>
+            </div>
+            <button onclick="closeModal('modal-game-select')" style="margin-top:20px; background: transparent; color: #b2bec3; font-weight: bold; border: none; font-size: 0.85rem; padding: 5px; width: 100%; cursor: pointer;">VAZGEÇ</button>
+        </div>
+    </div>
+
         <div id="modal-setup" class="modal-overlay" style="backdrop-filter: blur(10px);">
         <div class="modal-box"
             style="padding: 0; max-width: 420px; width: 90%; background: #fff; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); display: flex; flex-direction: column; max-height: 85vh;">
@@ -3764,6 +3901,18 @@ text-align: center;
                             <option value="3">3 Basamaklı</option>
                             <option value="4" selected>4 Basamaklı</option>
                             <option value="5">5 Basamaklı</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                         <select id="singleMode" style="flex:1; padding:8px; border-radius:8px; border:1px solid #dfe6e9;" onchange="toggleSingleModeOptions()">
+                            <option value="classic" selected>15 Hak (Klasik)</option>
+                            <option value="timed">Süreli</option>
+                        </select>
+                        <select id="singleDuration" style="flex:1; padding:8px; border-radius:8px; border:1px solid #dfe6e9; display:none;">
+                            <option value="3" selected>3 Dakika</option>
+                            <option value="5">5 Dakika</option>
+                            <option value="10">10 Dakika</option>
                         </select>
                     </div>
 
@@ -6871,6 +7020,12 @@ if (game.isPvc && game.active) {
             if(chatContainer) chatContainer.style.display = 'none';
         }
     }
+    function toggleSingleModeOptions() {
+        const mode = document.getElementById('singleMode').value;
+        const dur = document.getElementById('singleDuration');
+        if (dur) dur.style.display = (mode === 'timed') ? 'block' : 'none';
+    }
+
 function startSingle() {
         const dStr = document.getElementById('singleDiffSelect').value;
         const d = parseInt(dStr) || 4;
