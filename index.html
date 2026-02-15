@@ -3176,19 +3176,23 @@ button:active {
 /* --- 3D Mechanical Keyboard (Ultimate) --- */
 #wordKeyboard {
     background: #2d3436 !important;
-    padding: 15px !important;
+    padding: 10px 5px !important; /* Reduced padding for mobile */
     border-radius: 15px !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.1) !important;
     border-top: 1px solid rgba(255,255,255,0.1) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .key-btn {
+    flex: 1 !important; /* Allow keys to shrink/grow */
+    min-width: 0 !important; /* Critical for flex shrinking */
     background: linear-gradient(145deg, #ecf0f1, #bdc3c7) !important;
     border: none !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important; /* Slightly smaller radius */
     box-shadow:
-        0 4px 0 #95a5a6,
-        0 5px 10px rgba(0,0,0,0.2),
+        0 3px 0 #95a5a6,
+        0 3px 6px rgba(0,0,0,0.2),
         inset 0 1px 0 rgba(255,255,255,0.8) !important;
     color: #2c3e50 !important;
     font-weight: 800 !important;
@@ -3196,11 +3200,16 @@ button:active {
     transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
     transform: translateZ(0); /* GPU Force */
     margin: 2px !important;
-    height: 45px !important; /* Taller keys */
+    height: 42px !important; /* Default height */
+    padding: 0 !important; /* Reset padding to rely on flex centering */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1rem !important;
 }
 
 .key-btn:active {
-    transform: translateY(4px) !important;
+    transform: translateY(3px) !important;
     box-shadow:
         0 0 0 #95a5a6,
         inset 0 2px 5px rgba(0,0,0,0.2) !important;
@@ -3208,8 +3217,29 @@ button:active {
 }
 
 .key-btn.special {
+    flex: 1.5 !important; /* Special keys are wider */
     background: linear-gradient(145deg, #bdc3c7, #aab7b8) !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
+}
+
+/* Responsive Adjustments for Small Screens */
+@media (max-width: 380px) {
+    #wordKeyboard {
+        padding: 8px 2px !important;
+    }
+    .key-btn {
+        height: 38px !important;
+        font-size: 0.85rem !important;
+        border-radius: 4px !important;
+        box-shadow: 0 2px 0 #95a5a6, 0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8) !important;
+    }
+    .key-btn:active {
+        transform: translateY(2px) !important;
+    }
+    .kb-row {
+        gap: 2px !important;
+        margin-bottom: 3px !important;
+    }
 }
 
 /* Color States for Keyboard */
@@ -3801,7 +3831,7 @@ button:active {
     <div id="screen-word-game" class="screen">
         <div class="card" style="height: 100%; display: flex; flex-direction: column;">
             <div style="flex-shrink: 0; display:flex; align-items:center; justify-content:space-between; margin-bottom:15px;">
-                <button class="nav-btn" style="position:static; margin:0;" onclick="changeScreen('screen-lobby')">⬅</button>
+                <button class="nav-btn" style="position:static; margin:0;" onclick="attemptExit()">⬅</button>
                 <div style="text-align:center;">
                     <h3 style="margin:0; color:#8e44ad;">KELİME HAZİNESİ</h3>
                     <small id="wordLevelDisplay" style="color:#666;">Seviye 1</small><div id="wordTimerDisplay" style="color:#e74c3c; font-weight:bold; font-size:0.9rem; display:none;">00:00</div>
@@ -7485,8 +7515,14 @@ function startSingle() {
     function rejectRematchLegacy() { }
     function resetUI() { document.getElementById('history').innerHTML = ""; document.getElementById('guessInput').value = ""; document.getElementById('gameChatBox').innerHTML = ""; document.getElementById('endButtons').style.display = 'none'; }
     function leaveRoom() {
+        // Number Game Cleanup
         game.active = false;
         stopTimer();
+
+        // Word Game Cleanup
+        if (typeof wordGameState !== 'undefined') wordGameState.active = false;
+        if (typeof stopWordTimer === 'function') stopWordTimer();
+
         sessionStorage.removeItem('yh_game_room');
         sessionStorage.removeItem('yh_game_role');
 
@@ -7499,6 +7535,7 @@ function startSingle() {
             db.ref('rooms/' + game.room).off();
             db.ref('rooms/' + game.room + '/chat').off();
             db.ref('rooms/' + game.room + '/moves').off();
+            db.ref('rooms/' + game.room + '/word_moves').off();
             db.ref('rooms/' + game.room).onDisconnect().cancel();
             if (game.role === 'p1') {
                 db.ref('rooms/' + game.room).remove();
