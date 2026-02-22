@@ -10490,19 +10490,6 @@ function restartWordGame() {
 
     // Global Ad Counter for Word Game
     let wordGameAdCounter = 0;
-    function handleWordGameAd() {
-        wordGameAdCounter++;
-        if (wordGameAdCounter % 4 === 0) {
-            setTimeout(() => {
-                AdManager.showInterstitialAd();
-            }, 500); // Small delay before start? Or after end?
-            // User said "4 oyunda bir geçiş reklamı olsun". Usually at end or start.
-            // Start is annoying. Let's trigger it at end?
-            // Or just trigger logic here but show at end?
-            // Better: Trigger at END of game.
-            // I'll move logic to game end.
-        }
-    }
 
     function handleWordGameWin() {
         AudioEngine.win();
