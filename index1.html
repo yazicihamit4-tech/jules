@@ -5237,8 +5237,21 @@ const THEMES = [
         nativeAdId: "ca-app-pub-5879474591831999/2306675386", // General
         rewardedAdId: "ca-app-pub-5879474591831999/6350366758", // Oracle, Time, Continue, Play Again, Double Money
         adMobInterstitialId: "ca-app-pub-5879474591831999/8282395523", // Level End Interstitial
+        adMobRewardedInterstitialId: "ca-app-pub-5879474591831999/3058677360", // Double Reward (Rewarded Interstitial)
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
+
+        // Ödüllü Geçiş Reklamı (Yeni)
+        showRewardedInterstitialAd: function(onSuccess) {
+             this.pendingCallback = onSuccess;
+             if (this.isAndroid() && typeof window.Android.showRewardedInterstitial === 'function') {
+                 window.Android.showRewardedInterstitial(this.adMobRewardedInterstitialId);
+             } else {
+                 // Fallback or Web Mock
+                 console.log("Rewarded Interstitial ad (mock) - ID: " + this.adMobRewardedInterstitialId);
+                 if (onSuccess) onSuccess();
+             }
+        },
 
         showRewardedAd: function (onSuccess) {
             this.pendingCallback = onSuccess;
@@ -6363,8 +6376,13 @@ const THEMES = [
         }
 
         // Check if AdManager exists and ad is ready
-        if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
-            AdManager.showRewardedAd(() => {
+        // Use Rewarded Interstitial if available, otherwise standard Rewarded
+        if (typeof AdManager !== 'undefined') {
+            const adMethod = (AdManager.showRewardedInterstitialAd) ?
+                             AdManager.showRewardedInterstitialAd.bind(AdManager) :
+                             AdManager.showRewardedAd.bind(AdManager);
+
+            adMethod(() => {
                 // Reklam başarıyla izlendi - kazancı ikiye katla
                 const originalAmount = window.lastWinAmount || 0;
                 const doubleAmount = originalAmount * 2;
