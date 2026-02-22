@@ -7823,11 +7823,10 @@ function startSingle() {
 
         // 1. KELİME OYUNU REPLAY
         if (currentScreen === 'screen-word-game') {
-            checkWordGameAd();
             if (wordGameState.mode !== 'online') cleanRoom();
-            setTimeout(() => {
+            checkWordGameAd(() => {
                 restartWordGame();
-            }, 300);
+            });
             return;
         }
 
@@ -10555,7 +10554,7 @@ function restartWordGame() {
         showPiggyWin(baseGold, nextAction);
     }
 
-    function checkWordGameAd() {
+    function checkWordGameAd(callback) {
         // Oyun sayacını artır
         if (typeof wordGameAdCounter === 'undefined') {
             wordGameAdCounter = 0;
@@ -10568,8 +10567,12 @@ function restartWordGame() {
         if (wordGameAdCounter % 4 === 0) {
             console.log('Reklam gösteriliyor...');
             if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
-                AdManager.showInterstitialAd();
+                AdManager.showInterstitialAd(callback);
+            } else {
+                if (callback) callback();
             }
+        } else {
+            if (callback) callback();
         }
     }
 
