@@ -5244,17 +5244,38 @@ const THEMES = [
         // Ödüllü Geçiş Reklamı (Yeni)
         showRewardedInterstitialAd: function(onSuccess) {
              this.pendingCallback = onSuccess;
+             // 5 Saniye Zaman Aşımı Kuralı (Safety Timer)
+             setTimeout(() => {
+                 if (this.pendingCallback) {
+                     console.warn("Rewarded Interstitial ad timeout - forcing callback.");
+                     this.pendingCallback();
+                     this.pendingCallback = null;
+                 }
+             }, 5000);
+
              if (this.isAndroid() && typeof window.Android.showRewardedInterstitial === 'function') {
                  window.Android.showRewardedInterstitial(this.adMobRewardedInterstitialId);
              } else {
                  // Fallback or Web Mock
                  console.log("Rewarded Interstitial ad (mock) - ID: " + this.adMobRewardedInterstitialId);
-                 if (onSuccess) onSuccess();
+                 if (this.pendingCallback) {
+                     this.pendingCallback();
+                     this.pendingCallback = null;
+                 }
              }
         },
 
         showRewardedAd: function (onSuccess) {
             this.pendingCallback = onSuccess;
+            // 5 Saniye Zaman Aşımı Kuralı (Safety Timer)
+            setTimeout(() => {
+                if (this.pendingCallback) {
+                    console.warn("Rewarded ad timeout - forcing callback.");
+                    this.pendingCallback();
+                    this.pendingCallback = null;
+                }
+            }, 5000);
+
             if (this.isAndroid()) {
                 if (typeof window.Android.showRewardedAd === 'function') {
                     // Use new Rewarded ID
@@ -5262,12 +5283,18 @@ const THEMES = [
                 } else {
                     // Web test için direkt callback
                     console.log("Rewarded ad (mock) - ID: " + this.rewardedAdId);
-                    if (onSuccess) onSuccess();
+                    if (this.pendingCallback) {
+                        this.pendingCallback();
+                        this.pendingCallback = null;
+                    }
                 }
             } else {
                 console.warn("AdManager: Not Android, cannot show rewarded ad.");
                 // Web test için direkt callback
-                if (onSuccess) onSuccess();
+                if (this.pendingCallback) {
+                    this.pendingCallback();
+                    this.pendingCallback = null;
+                }
             }
         },
 
@@ -5298,6 +5325,16 @@ const THEMES = [
         // DÜZELTİLDİ: Geçiş reklamı hazır olduğunda oynatılır
         showInterstitialAd: function (onComplete) {
             this.interstitialCallback = onComplete;
+            // 5 Saniye Zaman Aşımı Kuralı (Safety Timer)
+            setTimeout(() => {
+                if (this.interstitialCallback) {
+                    console.warn("Interstitial ad timeout - forcing callback.");
+                    this.interstitialCallback();
+                    this.interstitialCallback = null;
+                    this.interstitialPending = false;
+                }
+            }, 5000);
+
             if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
                 this.interstitialPending = true;
                 // Use new AdMob Interstitial ID
@@ -5305,7 +5342,10 @@ const THEMES = [
             } else {
                 console.log("Interstitial ad (mock)");
                 this.interstitialPending = false;
-                if (onComplete) onComplete();
+                if (this.interstitialCallback) {
+                    this.interstitialCallback();
+                    this.interstitialCallback = null;
+                }
             }
         },
 
