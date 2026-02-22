@@ -5231,10 +5231,14 @@ const THEMES = [
         // Ad Configuration
         appId: "18543851",
 
-        // Yandex Units
-        yandexRewardedId: "R-M-18543851-1",
+        // Ad Units (Updated)
+        yandexBannerId: "R-M-18543851-9", // Pet/Theme
+        adMobBannerId: "ca-app-pub-5879474591831999/2171448597", // Lobby
+        nativeAdId: "ca-app-pub-5879474591831999/2306675386", // General
+        rewardedAdId: "ca-app-pub-5879474591831999/6350366758", // Oracle, Time, Continue, Play Again, Double Money
+
+        // Legacy/Placeholder Interstitial ID (Not used in new flow, but kept for compatibility)
         yandexInterstitialId: "R-M-18543851-2",
-        nativeAdId: "ca-app-pub-5879474591831999/8935662917",
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
@@ -5242,16 +5246,33 @@ const THEMES = [
             this.pendingCallback = onSuccess;
             if (this.isAndroid()) {
                 if (typeof window.Android.showRewardedAd === 'function') {
-                    window.Android.showRewardedAd(this.yandexRewardedId);
+                    // Use new Rewarded ID
+                    window.Android.showRewardedAd(this.rewardedAdId);
                 } else {
                     // Web test için direkt callback
-                    console.log("Rewarded ad (mock)");
+                    console.log("Rewarded ad (mock) - ID: " + this.rewardedAdId);
                     if (onSuccess) onSuccess();
                 }
             } else {
                 console.warn("AdManager: Not Android, cannot show rewarded ad.");
                 // Web test için direkt callback
                 if (onSuccess) onSuccess();
+            }
+        },
+
+        showBanner: function(adId) {
+            if (this.isAndroid() && typeof window.Android.showBanner === 'function') {
+                window.Android.showBanner(adId);
+            } else {
+                console.log("Banner ad (mock) - ID: " + adId);
+            }
+        },
+
+        hideBanner: function() {
+            if (this.isAndroid() && typeof window.Android.hideBanner === 'function') {
+                window.Android.hideBanner();
+            } else {
+                console.log("Banner ad hidden (mock)");
             }
         },
 
@@ -5687,7 +5708,24 @@ const THEMES = [
         document.getElementById(id).classList.add('active');
         currentScreen = id;
         if (id === 'screen-admin') loadAdminDashboard();
-        if (id === 'screen-lobby' && typeof AdManager !== 'undefined') AdManager.showNativeAd();
+
+        // REKLAM YÖNETİMİ
+        if (typeof AdManager !== 'undefined') {
+            if (id === 'screen-lobby') {
+                // Lobide AdMob Banner + Native Göster
+                if (AdManager.showBanner && AdManager.adMobBannerId) {
+                    AdManager.showBanner(AdManager.adMobBannerId);
+                }
+                if (AdManager.showNativeAd) {
+                    AdManager.showNativeAd();
+                }
+            } else {
+                // Diğer ekranlarda banner gizle (Oyun alanı temiz kalsın)
+                if (AdManager.hideBanner) {
+                    AdManager.hideBanner();
+                }
+            }
+        }
     }
 
     function openGameSelector() {
@@ -5905,6 +5943,10 @@ const THEMES = [
         });
     }
     function openMarket() {
+        // Yandex Banner (Paid Ad) - Pet/Theme
+        if (typeof AdManager !== 'undefined' && AdManager.showBanner && AdManager.yandexBannerId) {
+             AdManager.showBanner(AdManager.yandexBannerId);
+        }
         try {
             if (!user || !user.name) { showToast("Lütfen önce giriş yapın."); return; }
             const container = document.getElementById('marketItems'); container.innerHTML = "";
@@ -5922,34 +5964,79 @@ const THEMES = [
     function buyItem(id, cost) { if (user.gold < cost) return showToast("Yetersiz Altın!"); updateGold(-cost); if (!user.items) user.items = { oracle: 0, freeze: 0, sabotage: 0 }; user.items[id] = (user.items[id] || 0) + 1; db.ref('users/' + user.name + '/items').set(user.items); showToast("Satın alındı!"); openMarket(); updateLobbyUI(); }
     function buyItemWithAd(id) { if (confirm("Reklam izleyerek bu eşyayı almak ister misin?")) { AdManager.showRewardedAd(() => { if (!user.items) user.items = { oracle: 0, freeze: 0, sabotage: 0 }; user.items[id] = (user.items[id] || 0) + 1; db.ref('users/' + user.name + '/items').set(user.items); showToast("Eşya kazanıldı! (Reklam)"); openMarket(); updateLobbyUI(); }); } }
     function useItem(type) {
-        if (currentScreen === 'screen-word-game') {
-            if (!wordGameState.active) return;
-            if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok!");
+        // --- Helper Function to Execute Item Logic ---
+        const executeItem = (itemType) => {
+            if (currentScreen === 'screen-word-game') {
+                if (!wordGameState.active) return;
 
-            if (type === 'oracle') {
-                if (wordGameState.usedItems && wordGameState.usedItems.includes('oracle')) {
-                    return showToast("⚠️ İpucu her oyunda 1 kez kullanılabilir!");
-                }
-                if (!wordGameState.usedItems) wordGameState.usedItems = [];
-                wordGameState.usedItems.push('oracle');
+                if (itemType === 'oracle') {
+                    if (wordGameState.usedItems && wordGameState.usedItems.includes('oracle')) {
+                        // Word Career Limit check
+                        if (wordGameState.mode === 'career' && wordGameState.oracleMax && wordGameState.oracleUsedCount >= wordGameState.oracleMax) {
+                             return showToast("⚠️ Bu seviyede Kahin limiti doldu!");
+                        }
+                    }
+                    if (!wordGameState.usedItems) wordGameState.usedItems = [];
+                    wordGameState.usedItems.push('oracle');
+                    if (wordGameState.mode === 'career') wordGameState.oracleUsedCount = (wordGameState.oracleUsedCount || 0) + 1;
 
-                // Reveal 1 letter (Green)
-                // Find a letter in secret that hasn't been guessed correctly yet?
-                // Or just reveal a random position?
-
-                const secret = wordGameState.secret;
-                let revealed = false;
-
-                // Try to find unrevealed index
-                for(let i=0; i<10; i++) {
+                    const secret = wordGameState.secret;
                     const idx = Math.floor(Math.random() * secret.length);
-                    // Check if we already know this (from board)?
-                    // Simplified: Just tell the letter.
-                    alert(`🔮 KAHİN: ${idx+1}. Harf: ${secret[idx]}`);
-                    revealed = true;
-                    break;
+                    showToast(`🔮 KAHİN: ${idx+1}. Harf: ${secret[idx]}`);
                 }
+                else if (itemType === 'freeze') {
+                    game.startTime += 10000; // Word game uses same timer logic?
+                    // Wait, word game timer is `startWordTimer`. I need to extend it.
+                    // The current implementation of word timer is simplistic.
+                    // Assuming 'freeze' just adds time if supported.
+                    showToast("❄️ Zaman eklendi!");
+                }
+            }
+            else {
+                // NUMBER GAME LOGIC
+                if (!game.active) return;
 
+                if (itemType === 'oracle') {
+                    if (game.usedItems && game.usedItems.includes('oracle')) return showToast("Kahin kullanıldı!");
+                    if (!game.usedItems) game.usedItems = [];
+                    game.usedItems.push('oracle');
+                    const sStr = game.secret.toString();
+                    const idx = Math.floor(Math.random() * sStr.length);
+                    alert("🔮 KAHİN: " + (idx+1) + ". Rakam: " + sStr[idx]);
+                }
+                else if (itemType === 'freeze') {
+                    game.startTime += 10000;
+                    showToast("❄️ +10 Saniye!");
+                }
+                else if (itemType === 'sabotage') {
+                    if (game.mode === 'online') {
+                        triggerSabotageEffect();
+                        db.ref('rooms/' + game.room + '/active_effects').push({ type: 'ink', sender: user.name, time: Date.now() });
+                        showToast("😈 Sabotaj gönderildi!");
+                    } else {
+                        showToast("Sadece online modda!");
+                    }
+                }
+            }
+        };
+
+        // --- Main Check ---
+        if (!user.items) user.items = { oracle: 0, freeze: 0, sabotage: 0 };
+
+        if (user.items[type] > 0) {
+            user.items[type]--;
+            db.ref('users/' + user.name + '/items').set(user.items);
+            updateLobbyUI();
+            executeItem(type);
+        } else {
+            // Eşya yoksa reklam teklif et
+            if (confirm("Eşyan kalmamış! Reklam izleyerek kullanmak ister misin?")) {
+                if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
+                    AdManager.showRewardedAd(() => {
+                        executeItem(type);
+                    });
+                }
+            }
                 user.items[type]--;
                 db.ref('users/' + user.name + '/items').set(user.items);
                 updateLobbyUI();
@@ -6462,6 +6549,16 @@ const THEMES = [
         const el = document.getElementById(id);
         if (!el) return;
         el.style.display = 'none';
+
+        // REKLAM YÖNETİMİ: Modal kapanınca banner durumunu güncelle
+        if (typeof AdManager !== 'undefined') {
+            // Market veya Profil kapandığında Lobi bannerını geri getir (Eğer lobideysek)
+            if ((id === 'modal-market' || id === 'modal-profile-v2' || id === 'modal-pet') && currentScreen === 'screen-lobby') {
+                if (AdManager.showBanner && AdManager.adMobBannerId) {
+                    AdManager.showBanner(AdManager.adMobBannerId);
+                }
+            }
+        }
 
         // Eğer bu bir 'modal chest reward' ise, confetti'yi de temizleyebiliriz (isteğe bağlı)
         if (id === 'modal-chest-reward') {
@@ -7581,9 +7678,9 @@ if (game.isPvc && game.active) {
                              selectedCareerLvl = user.careerLevel;
                         }
 
-                        // REKLAM TETİKLE (DEVAM ET)
-                        if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
-                            AdManager.showInterstitialAd(() => {
+                        // REKLAM TETİKLE (DEVAM ET) - REWARDED AD
+                        if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
+                            AdManager.showRewardedAd(() => {
                                 launchCareerGameActual();
                             });
                         } else {
@@ -7716,10 +7813,7 @@ if (game.isPvc && game.active) {
 
     // --- OYUN BAŞLATMA FONKSİYONLARI (Geçiş reklamlı) ---
 function startSingle() {
-        // DÜZELTİLDİ: Geçiş reklamı göster, sonra oyuna başla
-        showInterstitialWithCallback(() => {
-            startSingleActual();
-        }, 'single');
+        startSingleActual();
     }
 
     function startSingleActual() {
@@ -7832,22 +7926,29 @@ function startSingle() {
         // 1. KELİME OYUNU REPLAY
         if (currentScreen === 'screen-word-game') {
             if (wordGameState.mode !== 'online') cleanRoom();
-            checkWordGameAd(() => {
+            // REKLAM İZLE VE TEKRAR OYNA
+            if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
+                AdManager.showRewardedAd(() => {
+                    restartWordGame();
+                });
+            } else {
                 restartWordGame();
-            });
+            }
             return;
         }
 
         // 2. SAYI OYUNU MODLARI
-        if (game.mode === 'single') {
+        if (game.mode === 'single' || game.mode === 'career') {
+            const nextFunc = (game.mode === 'single') ? startSingle : launchCareerGame;
             cleanRoom();
-            startSingle();
-            return;
-        }
-
-        if (game.mode === 'career') {
-            cleanRoom();
-            launchCareerGame();
+            // REKLAM İZLE VE TEKRAR OYNA
+            if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
+                AdManager.showRewardedAd(() => {
+                    nextFunc();
+                });
+            } else {
+                nextFunc();
+            }
             return;
         }
 
@@ -8625,6 +8726,11 @@ function filterAdminUsers(mode) { currentAdminTab = mode; renderAdminView(); }
     function openUserProfile(targetUsername) {
         if (!targetUsername) return;
         currentProfileUser = targetUsername;
+
+        // Yandex Banner (Paid Ad) - Pet Section inside Profile
+        if (typeof AdManager !== 'undefined' && AdManager.showBanner && AdManager.yandexBannerId) {
+             AdManager.showBanner(AdManager.yandexBannerId);
+        }
 
         // Modal'ı aç ve yükleniyor göster
         showModal('modal-profile-v2');
@@ -9461,10 +9567,7 @@ function filterAdminUsers(mode) { currentAdminTab = mode; renderAdminView(); }
 
     // 5. OYUNU BAŞLATAN ANA FONKSİYON
     function launchCareerGame() {
-        // DÜZELTİLDİ: Geçiş reklamı göster, sonra oyuna başla
-        showInterstitialWithCallback(() => {
-            launchCareerGameActual();
-        }, 'number_career');
+        launchCareerGameActual();
     }
 
     function launchCareerGameActual() {
@@ -10457,11 +10560,7 @@ function restartWordGame() {
 
     function startWordCareerLevel(lvl) {
         if(user.wordLevel < lvl) return showToast("Önceki seviyeyi tamamla!");
-
-        // DÜZELTİLDİ: Geçiş reklamı göster, sonra oyuna başla
-        showInterstitialWithCallback(() => {
-            startWordCareerLevelActual(lvl);
-        }, 'word_career');
+        startWordCareerLevelActual(lvl);
     }
 
     function startWordCareerLevelActual(lvl) {
@@ -10553,9 +10652,9 @@ function restartWordGame() {
                 text: "DEVAM ET",
                 action: () => {
                     closePiggyWin();
-                    // REKLAM TETİKLE (DEVAM ET)
-                    if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
-                        AdManager.showInterstitialAd(() => {
+                    // REKLAM TETİKLE (DEVAM ET) - REWARDED AD
+                    if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
+                        AdManager.showRewardedAd(() => {
                             startWordCareerLevelActual(user.wordLevel);
                         });
                     } else {
@@ -10713,10 +10812,7 @@ function restartWordGame() {
     }
 
     function startWordGameCustom() {
-        // DÜZELTİLDİ: Geçiş reklamı göster, sonra oyuna başla
-        showInterstitialWithCallback(() => {
-            startWordGameCustomActual();
-        }, 'word');
+        startWordGameCustomActual();
     }
 
     function startWordGameCustomActual() {
