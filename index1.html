@@ -5236,9 +5236,7 @@ const THEMES = [
         adMobBannerId: "ca-app-pub-5879474591831999/2171448597", // Lobby
         nativeAdId: "ca-app-pub-5879474591831999/2306675386", // General
         rewardedAdId: "ca-app-pub-5879474591831999/6350366758", // Oracle, Time, Continue, Play Again, Double Money
-
-        // Legacy/Placeholder Interstitial ID (Not used in new flow, but kept for compatibility)
-        yandexInterstitialId: "R-M-18543851-2",
+        adMobInterstitialId: "ca-app-pub-5879474591831999/8282395523", // Level End Interstitial
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
@@ -5289,7 +5287,8 @@ const THEMES = [
             this.interstitialCallback = onComplete;
             if (this.isAndroid() && typeof window.Android.showInterstitial === 'function') {
                 this.interstitialPending = true;
-                window.Android.showInterstitial(this.yandexInterstitialId);
+                // Use new AdMob Interstitial ID
+                window.Android.showInterstitial(this.adMobInterstitialId);
             } else {
                 console.log("Interstitial ad (mock)");
                 this.interstitialPending = false;
@@ -7651,9 +7650,9 @@ if (game.isPvc && game.active) {
                              selectedCareerLvl = user.careerLevel;
                         }
 
-                        // REKLAM TETİKLE (DEVAM ET) - REWARDED AD
-                        if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
-                            AdManager.showRewardedAd(() => {
+                        // GEÇİŞ REKLAMI TETİKLE (DEVAM ET)
+                        if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                            AdManager.showInterstitialAd(() => {
                                 launchCareerGameActual();
                             });
                         } else {
@@ -7899,9 +7898,9 @@ function startSingle() {
         // 1. KELİME OYUNU REPLAY
         if (currentScreen === 'screen-word-game') {
             if (wordGameState.mode !== 'online') cleanRoom();
-            // REKLAM İZLE VE TEKRAR OYNA
-            if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
-                AdManager.showRewardedAd(() => {
+            // GEÇİŞ REKLAMI VE TEKRAR OYNA (Updated to Interstitial)
+            if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                AdManager.showInterstitialAd(() => {
                     restartWordGame();
                 });
             } else {
@@ -7914,9 +7913,9 @@ function startSingle() {
         if (game.mode === 'single' || game.mode === 'career') {
             const nextFunc = (game.mode === 'single') ? startSingle : launchCareerGame;
             cleanRoom();
-            // REKLAM İZLE VE TEKRAR OYNA
-            if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
-                AdManager.showRewardedAd(() => {
+            // GEÇİŞ REKLAMI VE TEKRAR OYNA (Updated to Interstitial)
+            if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                AdManager.showInterstitialAd(() => {
                     nextFunc();
                 });
             } else {
@@ -10625,9 +10624,9 @@ function restartWordGame() {
                 text: "DEVAM ET",
                 action: () => {
                     closePiggyWin();
-                    // REKLAM TETİKLE (DEVAM ET) - REWARDED AD
-                    if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
-                        AdManager.showRewardedAd(() => {
+                    // GEÇİŞ REKLAMI TETİKLE (DEVAM ET)
+                    if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                        AdManager.showInterstitialAd(() => {
                             startWordCareerLevelActual(user.wordLevel);
                         });
                     } else {
