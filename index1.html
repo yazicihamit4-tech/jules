@@ -6226,7 +6226,7 @@ const THEMES = [
     }
 
     // --- PIGGY BANK WIN ANIMATION FUNCTION ---
-    function showPiggyWin(amount) {
+    function showPiggyWin(amount, nextAction) {
         const overlay = document.getElementById('piggyWinOverlay');
         const amountEl = document.getElementById('piggyAmount');
         const fillBar = document.getElementById('piggyFillBar');
@@ -6292,7 +6292,21 @@ const THEMES = [
                     doubleBtn.onclick = watchAdForDoubleReward;
                     btns.appendChild(doubleBtn);
                 }
+
+                // If nextAction provided, add a special Continue button
+                if (nextAction) {
+                    const continueBtn = document.createElement('button');
+                    continueBtn.id = 'btnCustomContinue';
+                    continueBtn.className = 'btn-blue';
+                    continueBtn.style.cssText = 'width:100%; margin-bottom:10px; padding:12px; font-size:1rem; animation:pulse-active 1.5s infinite;';
+                    continueBtn.innerHTML = nextAction.text || 'DEVAM ET';
+                    continueBtn.onclick = nextAction.action;
+
+                    btns.prepend(continueBtn);
+                }
+
                 btns.style.display = 'flex';
+                btns.style.flexDirection = 'column'; // Stack buttons
                 btns.style.animation = 'slideUp 0.5s ease';
             }
         }, 1500);
@@ -7539,45 +7553,8 @@ if (game.isPvc && game.active) {
             if (typeof amountOrReason === 'number') amount = amountOrReason;
         }
 
-        // 2. WIN vs LOSE HANDLING
-        if (status === 'win') {
-            // === WIN PATH: Show Piggy Bank Animation (NO MODAL) ===
-            safeConfetti();
-            if (amount > 0) animateGoldChange(amount);
-
-            // Show piggy bank overlay
-            showPiggyWin(amount || 0);
-
-        } else {
-            // === LOSE/DRAW PATH: Show Original Modal ===
-            document.getElementById('endButtons').style.display = 'flex';
-            const title = document.getElementById('endTitle');
-            const msg = document.getElementById('endMsg');
-
-            if (status === 'lose') {
-                title.innerText = 'KAYBETTİN';
-                title.style.color = "#e74c3c";
-                msg.innerText = (game.mode === 'bounty') ? "Cevap: ??? (GİZLİ)" : "Cevap: " + game.secret;
-            } else {
-                title.innerText = 'BERABERE';
-                title.style.color = "#f1c40f";
-                msg.innerText = "Dostluk kazandı!";
-            }
-
-            // Online modda rövanş ayarlarını göster
-            if (game.mode === 'online') {
-                if (document.getElementById('rematchSettings')) document.getElementById('rematchSettings').style.display = 'block';
-            } else {
-                if (document.getElementById('rematchSettings')) document.getElementById('rematchSettings').style.display = 'none';
-            }
-
-            if (document.getElementById('incomingRematchArea')) document.getElementById('incomingRematchArea').style.display = 'none';
-            document.getElementById('rematchStatus').innerText = "";
-
-            showModal('modal-end');
-        }
-
-        // 3. KARİYER MODU İLERLEME MANTIĞI
+        // 3. KARİYER MODU İLERLEME MANTIĞI (Moved up for Next Action)
+        let nextAction = null;
         try {
             if (game.mode === 'career' && status === 'win') {
                 const currentLvl = parseInt(user.careerLevel) || 1;
@@ -7612,24 +7589,63 @@ if (game.isPvc && game.active) {
                     }
                     updateLobbyUI();
                 }
+
+                nextAction = {
+                    text: "DEVAM ET",
+                    action: () => {
+                        closePiggyWin();
+                        if (user.careerLevel > playedLvl) {
+                             selectedCareerLvl = user.careerLevel;
+                        }
+                        launchCareerGame();
+                    }
+                };
             }
         } catch (e) {
             console.error("Kariyer ilerleme hatası:", e);
         }
 
-        // 4. REKLAM MANTIĞI - KALDIRILDI
-        // Kullanıcı isteği: Oyun biter bitmez reklam gösterme
-        // Reklamlar sadece:
-        // - Para katlama isteğinde (showPiggyWin)
-        // - Joker kullanımda (useHint, offerLifeline)
-        // - Kahin ve zaman seçeneklerinde gösterilir
+        // 2. WIN vs LOSE HANDLING
+        if (status === 'win') {
+            // === WIN PATH: Show Piggy Bank Animation (NO MODAL) ===
+            safeConfetti();
+            if (amount > 0) animateGoldChange(amount);
+
+            // Show piggy bank overlay with nextAction
+            showPiggyWin(amount || 0, nextAction);
+
+        } else {
+            // === LOSE/DRAW PATH: Show Original Modal ===
+            document.getElementById('endButtons').style.display = 'flex';
+            const title = document.getElementById('endTitle');
+            const msg = document.getElementById('endMsg');
+
+            if (status === 'lose') {
+                title.innerText = 'KAYBETTİN';
+                title.style.color = "#e74c3c";
+                msg.innerText = (game.mode === 'bounty') ? "Cevap: ??? (GİZLİ)" : "Cevap: " + game.secret;
+            } else {
+                title.innerText = 'BERABERE';
+                title.style.color = "#f1c40f";
+                msg.innerText = "Dostluk kazandı!";
+            }
+
+            // Online modda rövanş ayarlarını göster
+            if (game.mode === 'online') {
+                if (document.getElementById('rematchSettings')) document.getElementById('rematchSettings').style.display = 'block';
+            } else {
+                if (document.getElementById('rematchSettings')) document.getElementById('rematchSettings').style.display = 'none';
+            }
+
+            if (document.getElementById('incomingRematchArea')) document.getElementById('incomingRematchArea').style.display = 'none';
+            document.getElementById('rematchStatus').innerText = "";
+
+            showModal('modal-end');
+        }
+
         try {
             gamesPlayedCount++;
-            // Oyun sonu reklamı kaldırıldı - kullanıcı deneyimini bozuyordu
-            // if (gamesPlayedCount % 3 === 0) { ... }
-        } catch (e) {
-            console.error("Reklam hatası:", e);
-        }
+        } catch (e) {}
     }
 
     function updateGameInterface(mode) {
@@ -10511,7 +10527,8 @@ function restartWordGame() {
         safeConfetti();
         const baseGold = wordGameState.length * 20; // 5 chars = 100 gold
         updateGold(baseGold);
-        showPiggyWin(baseGold);
+
+        let nextAction = null;
 
         // Career Progression
         if (wordGameState.mode === 'career') {
@@ -10538,14 +10555,21 @@ function restartWordGame() {
                     });
                 }
             }
+
+            // Prepare Next Action (Continue)
+            nextAction = {
+                text: "DEVAM ET",
+                action: () => {
+                    closePiggyWin();
+                    // Show ad then continue
+                    showInterstitialWithCallback(() => {
+                        startWordCareerLevelActual(user.wordLevel);
+                    }, 'word_career');
+                }
+            };
         }
 
-        // 4 saniye sonra lobiye dön (Eğer yeni oyun başlamadıysa)
-        setTimeout(() => {
-            if (!wordGameState.active && currentScreen === 'screen-word-game') {
-                changeScreen('screen-lobby');
-            }
-        }, 4000);
+        showPiggyWin(baseGold, nextAction);
     }
 
     function checkWordGameAd() {
