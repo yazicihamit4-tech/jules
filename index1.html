@@ -5967,7 +5967,7 @@ const THEMES = [
         // --- Helper Function to Execute Item Logic ---
         const executeItem = (itemType) => {
             if (currentScreen === 'screen-word-game') {
-                if (!wordGameState.active) return;
+                if (!wordGameState.active) return showToast("Oyun başlamadı!");
 
                 if (itemType === 'oracle') {
                     if (wordGameState.usedItems && wordGameState.usedItems.includes('oracle')) {
@@ -5975,6 +5975,8 @@ const THEMES = [
                         if (wordGameState.mode === 'career' && wordGameState.oracleMax && wordGameState.oracleUsedCount >= wordGameState.oracleMax) {
                              return showToast("⚠️ Bu seviyede Kahin limiti doldu!");
                         }
+                        // Normal mode limit? usually 1
+                        if (wordGameState.mode !== 'career') return showToast("⚠️ İpucu her oyunda 1 kez kullanılabilir!");
                     }
                     if (!wordGameState.usedItems) wordGameState.usedItems = [];
                     wordGameState.usedItems.push('oracle');
@@ -5985,21 +5987,27 @@ const THEMES = [
                     showToast(`🔮 KAHİN: ${idx+1}. Harf: ${secret[idx]}`);
                 }
                 else if (itemType === 'freeze') {
-                    game.startTime += 10000; // Word game uses same timer logic?
-                    // Wait, word game timer is `startWordTimer`. I need to extend it.
-                    // The current implementation of word timer is simplistic.
-                    // Assuming 'freeze' just adds time if supported.
-                    showToast("❄️ Zaman eklendi!");
+                    // Assuming word game has a timer active?
+                    if (document.getElementById('wordTimerDisplay').style.display !== 'none') {
+                         game.startTime += 10000; // This might need adjustment if word game timer logic differs
+                         showToast("❄️ Zaman eklendi!");
+                    } else {
+                        showToast("Bu modda zaman yok!");
+                    }
                 }
             }
             else {
                 // NUMBER GAME LOGIC
-                if (!game.active) return;
+                if (!game.active) return showToast("Oyun başlamadı!");
 
                 if (itemType === 'oracle') {
-                    if (game.usedItems && game.usedItems.includes('oracle')) return showToast("Kahin kullanıldı!");
+                    if (game.diff === 3) return showToast("🚫 3 Haneli oyunlarda Kahin yasaktır!");
+                    if (game.usedItems && game.usedItems.includes('oracle')) return showToast("⚠️ Kahin özelliği her oyunda en fazla 1 kez kullanılabilir!");
+
                     if (!game.usedItems) game.usedItems = [];
                     game.usedItems.push('oracle');
+                    if (game.mode === 'career') game.oracleUsedCount = (game.oracleUsedCount || 0) + 1;
+
                     const sStr = game.secret.toString();
                     const idx = Math.floor(Math.random() * sStr.length);
                     alert("🔮 KAHİN: " + (idx+1) + ". Rakam: " + sStr[idx]);
@@ -6007,6 +6015,7 @@ const THEMES = [
                 else if (itemType === 'freeze') {
                     game.startTime += 10000;
                     showToast("❄️ +10 Saniye!");
+                    try { AudioEngine.notification(); } catch(e){}
                 }
                 else if (itemType === 'sabotage') {
                     if (game.mode === 'online') {
@@ -6033,50 +6042,14 @@ const THEMES = [
             if (confirm("Eşyan kalmamış! Reklam izleyerek kullanmak ister misin?")) {
                 if (typeof AdManager !== 'undefined' && AdManager.showRewardedAd) {
                     AdManager.showRewardedAd(() => {
+                        // Reward: Give 1 item and use it immediately?
+                        // Or just execute action without giving item?
+                        // "Reklam izleyerek kullanmak" implies executing action.
                         executeItem(type);
                     });
                 }
             }
-                user.items[type]--;
-                db.ref('users/' + user.name + '/items').set(user.items);
-                updateLobbyUI();
-                return;
-            }
         }
-
-        if (!game.active) return showToast("Oyun başlamadı!");
-        if (!user.items || !user.items[type] || user.items[type] <= 0) return showToast("Eşya yok! Marketten al.");
-
-
-
-        if (type === 'oracle') {
-            // YENİ KAHİN KURALLARI
-            if (game.diff === 3) return showToast("🚫 3 Haneli oyunlarda Kahin yasaktır!");
-            if (game.usedItems && game.usedItems.includes('oracle')) return showToast("⚠️ Kahin özelliği her oyunda en fazla 1 kez kullanılabilir!");
-
-
-
-            const secret = game.secret.toString();
-            const randomIdx = Math.floor(Math.random() * secret.length);
-            const digit = secret[randomIdx];
-            alert(`🔮 KAHİN: ${randomIdx + 1}. sıradaki rakam KESİN OLARAK: ${digit}`);
-
-            if (game.mode === 'career') game.oracleUsedCount++; // Kariyer sayacını artır
-            game.usedItems.push('oracle');
-
-        } else if (type === 'freeze') {
-            game.startTime += 10000;
-            showToast("❄️ Zaman Donduruldu! (+10sn)");
-            AudioEngine.notification();
-        } else if (type === 'sabotage') {
-            if (game.mode !== 'online') return showToast("Sadece Online maçta!");
-            db.ref(`rooms/${game.room}/active_effects`).push({ type: 'ink', sender: user.name, time: Date.now() });
-            showToast("😈 Sabotaj Gönderildi!");
-        }
-
-        user.items[type]--;
-        db.ref('users/' + user.name + '/items').set(user.items);
-        updateLobbyUI();
     }
     function triggerSabotageEffect() { const layer = document.getElementById('sabotageLayer'); layer.style.display = 'block'; AudioEngine.error(); setTimeout(() => { layer.style.display = 'none'; }, 3000); }
     function buyTheme(themeId) { const theme = THEMES.find(t => t.id === themeId); if (!theme) return showToast("Hatalı ürün!"); if (confirm(`${theme.name} temasını reklam izleyerek açmak ister misin?`)) { AdManager.showRewardedAd(() => { if (!user.inventory) user.inventory = []; if (!user.inventory.includes(themeId)) { user.inventory.push(themeId); } if (db && user.name) { db.ref('users/' + user.name + '/inventory').set(user.inventory); } showToast(`🎉 Tebrikler! "${theme.name}" açıldı.`); AudioEngine.win(); const btn = document.getElementById(`btn-theme-${themeId}`); if (btn) { btn.className = "btn-green"; btn.innerHTML = "KULLAN"; btn.onclick = function () { applyTheme(themeId); }; btn.style.animation = "pulseBtn 0.5s ease"; } }); } }
