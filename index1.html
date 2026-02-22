@@ -5234,7 +5234,7 @@ const THEMES = [
         // Yandex Units
         yandexRewardedId: "R-M-18543851-1",
         yandexInterstitialId: "R-M-18543851-2",
-        yandexNativeId: "ca-app-pub-5879474591831999/8935662917",
+        nativeAdId: "ca-app-pub-5879474591831999/8935662917",
 
         isAndroid: function () { return (typeof window.Android !== "undefined" && window.Android !== null); },
 
@@ -5297,7 +5297,7 @@ const THEMES = [
             // Android native ad
             if (this.isAndroid() && typeof window.Android.showNativeAd === 'function') {
                 try {
-                    window.Android.showNativeAd(this.yandexNativeId);
+                    window.Android.showNativeAd(this.nativeAdId);
                     console.log('Android native ad çağrıldı');
                 } catch(e) {
                     console.error('Native ad hatası:', e);
@@ -7580,7 +7580,15 @@ if (game.isPvc && game.active) {
                         if (user.careerLevel > playedLvl) {
                              selectedCareerLvl = user.careerLevel;
                         }
-                        launchCareerGame();
+
+                        // REKLAM TETİKLE (DEVAM ET)
+                        if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                            AdManager.showInterstitialAd(() => {
+                                launchCareerGameActual();
+                            });
+                        } else {
+                            launchCareerGameActual();
+                        }
                     }
                 };
             }
@@ -10041,6 +10049,13 @@ function filterAdminUsers(mode) { currentAdminTab = mode; renderAdminView(); }
             wordGameState.active = false;
             stopWordTimer();
             AudioEngine.error();
+
+            // Seriyi Sıfırla
+            if (user.name) {
+                user.winStreak = 0;
+                db.ref('users/' + user.name).update({ winStreak: 0 });
+            }
+
             setTimeout(() => {
                 document.getElementById('endTitle').innerText = 'KAYBETTİN';
                 document.getElementById('endTitle').style.color = "#e74c3c";
@@ -10497,6 +10512,14 @@ function restartWordGame() {
         const baseGold = wordGameState.length * 20; // 5 chars = 100 gold
         updateGold(baseGold);
 
+        // Günlük Görev ve Seri Güncellemesi
+        const today = getDayKey();
+        if (user.name) {
+            db.ref(`users/${user.name}/quests/${today}/wins`).transaction(w => (w || 0) + 1);
+        }
+        checkQuestProgress();
+        handleWinStreak();
+
         let nextAction = null;
 
         // Career Progression
@@ -10530,10 +10553,14 @@ function restartWordGame() {
                 text: "DEVAM ET",
                 action: () => {
                     closePiggyWin();
-                    // Show ad then continue
-                    showInterstitialWithCallback(() => {
+                    // REKLAM TETİKLE (DEVAM ET)
+                    if (typeof AdManager !== 'undefined' && AdManager.showInterstitialAd) {
+                        AdManager.showInterstitialAd(() => {
+                            startWordCareerLevelActual(user.wordLevel);
+                        });
+                    } else {
                         startWordCareerLevelActual(user.wordLevel);
-                    }, 'word_career');
+                    }
                 }
             };
         }
